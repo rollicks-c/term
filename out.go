@@ -63,9 +63,10 @@ func Warnf(format string, v ...interface{}) {
 	fmt.Print(Warn(msg))
 }
 
-func Failf(format string, v ...interface{}) {
+func Failf(format string, v ...interface{}) error {
 	msg := fmt.Sprintf(format, v...)
 	fmt.Print(Fatal(msg))
+	return fmt.Errorf(msg)
 }
 
 func DebugF(format string, v ...interface{}) {

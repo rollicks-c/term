@@ -5,18 +5,18 @@ import (
 	"strings"
 )
 
-type CellColorizer func(rowIndex, colIndex int) string
+type CellFormatter func(value string, rowIndex, colIndex int) (string, string)
 
 type TableViewBuilder struct {
-	cellColorizer CellColorizer
+	cellFormatter CellFormatter
 	headers       []string
 	rows          [][]string
 }
 
 func TableView() *TableViewBuilder {
 	return &TableViewBuilder{
-		cellColorizer: func(rowIndex, colIndex int) string {
-			return "%s"
+		cellFormatter: func(value string, rowIndex, colIndex int) (string, string) {
+			return "%s", value
 		},
 		headers: []string{},
 		rows:    [][]string{},
@@ -28,8 +28,8 @@ func (t *TableViewBuilder) AddHeaders(row ...string) *TableViewBuilder {
 	return t
 }
 
-func (t *TableViewBuilder) AddCellFormatter(cf CellColorizer) *TableViewBuilder {
-	t.cellColorizer = cf
+func (t *TableViewBuilder) AddCellFormatter(cf CellFormatter) *TableViewBuilder {
+	t.cellFormatter = cf
 	return t
 }
 
@@ -78,9 +78,9 @@ func (t *TableViewBuilder) Build() string {
 	for rowIndex, row := range t.rows {
 		for colIndex, cell := range row {
 			padLen := maxWidths[colIndex]
-			exp := fmt.Sprintf("%-*s", padLen, cell)
-			color := t.cellColorizer(rowIndex, colIndex)
-			exp = fmt.Sprintf(color, exp)
+			style, value := t.cellFormatter(cell, rowIndex, colIndex)
+			exp := fmt.Sprintf("%-*s", padLen, value)
+			exp = fmt.Sprintf(style, exp)
 			table += exp
 			if colIndex < len(row)-1 {
 				table += "\t"
