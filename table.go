@@ -7,19 +7,23 @@ import (
 
 type CellFormatter func(value string, rowIndex, colIndex int) (string, string)
 
+type ColFormatter func(value string, rowIndex int) (string, string)
+
 type TableViewBuilder struct {
 	cellFormatter CellFormatter
+	colFormatters map[string]ColFormatter
 	headers       []string
 	rows          [][]string
 }
 
 func TableView() *TableViewBuilder {
 	return &TableViewBuilder{
+		headers: []string{},
+		rows:    [][]string{},
 		cellFormatter: func(value string, rowIndex, colIndex int) (string, string) {
 			return "%s", value
 		},
-		headers: []string{},
-		rows:    [][]string{},
+		colFormatters: map[string]ColFormatter{},
 	}
 }
 
@@ -30,6 +34,11 @@ func (t *TableViewBuilder) AddHeaders(row ...string) *TableViewBuilder {
 
 func (t *TableViewBuilder) AddCellFormatter(cf CellFormatter) *TableViewBuilder {
 	t.cellFormatter = cf
+	return t
+}
+
+func (t *TableViewBuilder) AddColFormatter(col string, cf ColFormatter) *TableViewBuilder {
+	t.colFormatters[col] = cf
 	return t
 }
 
@@ -75,18 +84,41 @@ func (t *TableViewBuilder) Build() string {
 
 	// print rows
 	table += "\n"
-	for rowIndex, row := range t.rows {
-		for colIndex, cell := range row {
-			padLen := maxWidths[colIndex]
-			style, value := t.cellFormatter(cell, rowIndex, colIndex)
-			exp := fmt.Sprintf("%-*s", padLen, value)
-			exp = fmt.Sprintf(style, exp)
-			table += exp
-			if colIndex < len(row)-1 {
+	for rowIndex := range t.rows {
+		for colIndex := range t.rows[rowIndex] {
+
+			// render
+			cell := t.renderCell(rowIndex, colIndex, maxWidths)
+
+			// append
+			table += cell
+			if colIndex < len(t.rows[rowIndex])-1 {
 				table += "\t"
 			}
 		}
 		table += "\n"
 	}
 	return table
+}
+
+func (t *TableViewBuilder) renderCell(rowIndex, colIndex int, widths []int) string {
+
+	// gather data
+	padLen := widths[colIndex]
+	cell := t.rows[rowIndex][colIndex]
+
+	// apply formatters
+	style, value := t.cellFormatter(cell, rowIndex, colIndex)
+	if colFormatter, ok := t.colFormatters[t.headers[colIndex]]; ok {
+		style, value = colFormatter(cell, rowIndex)
+	}
+
+	// escape
+	value = strings.ReplaceAll(value, "\n", "\\n")
+
+	// render
+	exp := fmt.Sprintf("%-*s", padLen, value)
+	exp = fmt.Sprintf(style, exp)
+
+	return exp
 }
