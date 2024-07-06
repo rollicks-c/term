@@ -7,6 +7,27 @@ import (
 	"strings"
 )
 
+func PromptSecret(prompt string) (string, error) {
+
+	dataPrompt := promptui.Prompt{
+		Label:   prompt,
+		Default: "",
+		Mask:    '*',
+		Validate: func(s string) error {
+			if strings.TrimSpace(s) == "" {
+				return fmt.Errorf("value required")
+			}
+			return nil
+		},
+	}
+	value, err := dataPrompt.Run()
+	if err != nil {
+		return "", err
+	}
+	return value, nil
+
+}
+
 func PromptString(prompt, defaultValue string) (string, error) {
 
 	dataPrompt := promptui.Prompt{
