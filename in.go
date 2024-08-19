@@ -22,7 +22,7 @@ func Confirm(prompt string, v ...interface{}) bool {
 
 }
 
-func choose(prompt string, min, max int, v ...interface{}) (int, bool) {
+func Choose(prompt string, min, max int, v ...interface{}) (int, bool) {
 
 	// prompt
 	msg := fmt.Sprintf("%s: ", prompt)
