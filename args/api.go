@@ -135,8 +135,24 @@ func (b *Batch) GetDate(index int, options ...ArgOption[time.Time]) time.Time {
 	return v
 }
 
+func (b *Batch) GetWeek(index int, options ...ArgOption[time.Time]) time.Time {
+	v, err := b.ac.GetWeek(index, options...)
+	if err != nil {
+		b.errorList = append(b.errorList)
+	}
+	return v
+}
+
 func (b *Batch) GetWeekRel(index int, options ...ArgOption[time.Time]) time.Time {
 	v, err := b.ac.GetWeekRel(index, options...)
+	if err != nil {
+		b.errorList = append(b.errorList)
+	}
+	return v
+}
+
+func (b *Batch) GetMonth(index int, options ...ArgOption[time.Time]) time.Time {
+	v, err := b.ac.GetMonth(index, options...)
 	if err != nil {
 		b.errorList = append(b.errorList)
 	}
@@ -241,10 +257,24 @@ func (c Collector) GetDateRel(index int, options ...ArgOption[time.Time]) (time.
 	return retrieve[time.Time](c.args, index, options...)
 }
 
+func (c Collector) GetWeek(index int, options ...ArgOption[time.Time]) (time.Time, error) {
+	dateRelParser := datetime.NewParser().ParseRelativeWeek
+	dateAbsParser := datetime.NewParser().DateParser(c.dateFormat)
+	optionsDate := append(options, withParsers(dateRelParser, dateAbsParser))
+	return retrieve[time.Time](c.args, index, optionsDate...)
+}
+
 func (c Collector) GetWeekRel(index int, options ...ArgOption[time.Time]) (time.Time, error) {
 	parser := datetime.NewParser().ParseRelativeWeek
 	options = append(options, withParsers(parser))
 	return retrieve[time.Time](c.args, index, options...)
+}
+
+func (c Collector) GetMonth(index int, options ...ArgOption[time.Time]) (time.Time, error) {
+	dateRelParser := datetime.NewParser().ParseRelativeMonth
+	dateAbsParser := datetime.NewParser().DateParser(c.dateFormat)
+	optionsDate := append(options, withParsers(dateRelParser, dateAbsParser))
+	return retrieve[time.Time](c.args, index, optionsDate...)
 }
 
 func (c Collector) GetMonthRel(index int, options ...ArgOption[time.Time]) (time.Time, error) {
