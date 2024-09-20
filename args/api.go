@@ -73,6 +73,10 @@ func NewCollector(args []string, options ...CollectorOption) *Collector {
 	return ac
 }
 
+func (c Collector) Count() int {
+	return len(c.args)
+}
+
 func (c Collector) Batch() *Batch {
 	return &Batch{
 		ac:        &c,
