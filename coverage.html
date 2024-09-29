@@ -1,0 +1,1778 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>args: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/rollicks-c/term/args/api.go (6.3%)</option>
+				
+				<option value="file1">github.com/rollicks-c/term/args/parse.go (11.1%)</option>
+				
+				<option value="file2">github.com/rollicks-c/term/args/processor.go (40.0%)</option>
+				
+				<option value="file3">github.com/rollicks-c/term/in.go (0.0%)</option>
+				
+				<option value="file4">github.com/rollicks-c/term/internal/datetime/api.go (57.3%)</option>
+				
+				<option value="file5">github.com/rollicks-c/term/internal/datetime/datetime.go (66.7%)</option>
+				
+				<option value="file6">github.com/rollicks-c/term/internal/num/num.go (0.0%)</option>
+				
+				<option value="file7">github.com/rollicks-c/term/io/in.go (0.0%)</option>
+				
+				<option value="file8">github.com/rollicks-c/term/io/io.go (0.0%)</option>
+				
+				<option value="file9">github.com/rollicks-c/term/io/out.go (4.2%)</option>
+				
+				<option value="file10">github.com/rollicks-c/term/io/table/builder.go (0.0%)</option>
+				
+				<option value="file11">github.com/rollicks-c/term/io/table/cell.go (0.0%)</option>
+				
+				<option value="file12">github.com/rollicks-c/term/io/table/render.go (0.0%)</option>
+				
+				<option value="file13">github.com/rollicks-c/term/io/table/row.go (0.0%)</option>
+				
+				<option value="file14">github.com/rollicks-c/term/out.go (0.0%)</option>
+				
+				<option value="file15">github.com/rollicks-c/term/prompt.go (0.0%)</option>
+				
+				<option value="file16">github.com/rollicks-c/term/table.go (0.0%)</option>
+				
+				<option value="file17">github.com/rollicks-c/term/table_ex.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package args
+
+import (
+        "fmt"
+        "github.com/rollicks-c/term/internal/datetime"
+        "github.com/rollicks-c/term/internal/num"
+        "time"
+)
+
+const (
+        DateInputFormat     = "060102"
+        TimeInputFormat     = "1504"
+        DateTimeInputFormat = "060102 1504"
+)
+
+type Batch struct {
+        ac        *Collector
+        errorList []error
+}
+type Collector struct {
+        args           []string
+        dateFormat     string
+        timeFormat     string
+        dateTimeFormat string
+}
+
+type ListProvider interface {
+        SearchItems(exp string) ([]ListItem, error)
+        ListItems() ([]ListItem, error)
+}
+type ListItem struct {
+        Value any
+        Name  string
+}
+
+type ArgContext[T any] struct {
+        parsers      []argParser[T]
+        value        T
+        defaultValue *T
+}
+
+type CollectorOption func(*Collector)
+type ArgOption[T any] func(ctx *ArgContext[T])
+
+func WithDateLayout(layout string) CollectorOption <span class="cov0" title="0">{
+        return func(c *Collector) </span><span class="cov0" title="0">{
+                c.dateFormat = layout
+        }</span>
+}
+
+func WithDateTimeLayout(layout string) CollectorOption <span class="cov0" title="0">{
+        return func(c *Collector) </span><span class="cov0" title="0">{
+                c.dateTimeFormat = layout
+        }</span>
+}
+
+func WithDefault[T any](defaultValue T) ArgOption[T] <span class="cov8" title="1">{
+        return func(ctx *ArgContext[T]) </span><span class="cov8" title="1">{
+                ctx.defaultValue = &amp;defaultValue
+        }</span>
+}
+
+func NewCollector(args []string, options ...CollectorOption) *Collector <span class="cov8" title="1">{
+        ac := &amp;Collector{
+                args:           args,
+                dateFormat:     DateInputFormat,
+                timeFormat:     TimeInputFormat,
+                dateTimeFormat: DateTimeInputFormat,
+        }
+        for _, opt := range options </span><span class="cov0" title="0">{
+                opt(ac)
+        }</span>
+        <span class="cov8" title="1">return ac</span>
+}
+
+func (c Collector) Count() int <span class="cov0" title="0">{
+        return len(c.args)
+}</span>
+
+func (c Collector) Batch() *Batch <span class="cov0" title="0">{
+        return &amp;Batch{
+                ac:        &amp;c,
+                errorList: make([]error, 0),
+        }
+}</span>
+
+func (b *Batch) Error() error <span class="cov0" title="0">{
+        if len(b.errorList) == 0 </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov0" title="0">return fmt.Errorf("batch error: %v", b.errorList)</span>
+}
+
+func (b *Batch) GetInt(index int, options ...ArgOption[int]) int <span class="cov0" title="0">{
+        v, err := b.ac.GetInt(index, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList, err)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (b *Batch) GetString(index int, options ...ArgOption[string]) string <span class="cov0" title="0">{
+        v, err := b.ac.GetString(index, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList, err)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (b *Batch) GetListItem(index int, provider ListProvider, options ...ArgOption[any]) any <span class="cov0" title="0">{
+        v, err := b.ac.GetListItem(index, provider, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList, err)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (b *Batch) GetDateAbs(index int, options ...ArgOption[time.Time]) time.Time <span class="cov0" title="0">{
+        v, err := b.ac.GetDateAbs(index, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList, err)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (b *Batch) GetDateRel(index int, options ...ArgOption[time.Time]) time.Time <span class="cov0" title="0">{
+        v, err := b.ac.GetDateRel(index, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (b *Batch) GetDate(index int, options ...ArgOption[time.Time]) time.Time <span class="cov0" title="0">{
+        v, err := b.ac.GetDate(index, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (b *Batch) GetWeek(index int, options ...ArgOption[time.Time]) time.Time <span class="cov0" title="0">{
+        v, err := b.ac.GetWeek(index, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (b *Batch) GetWeekRel(index int, options ...ArgOption[time.Time]) time.Time <span class="cov0" title="0">{
+        v, err := b.ac.GetWeekRel(index, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (b *Batch) GetMonth(index int, options ...ArgOption[time.Time]) time.Time <span class="cov0" title="0">{
+        v, err := b.ac.GetMonth(index, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (b *Batch) GetMonthRel(index int, options ...ArgOption[time.Time]) time.Time <span class="cov0" title="0">{
+        v, err := b.ac.GetMonthRel(index, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (b *Batch) GetDuration(index int, options ...ArgOption[time.Duration]) time.Duration <span class="cov0" title="0">{
+        v, err := b.ac.GetDuration(index, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (b *Batch) GetDateTimeAbs(index int, options ...ArgOption[time.Time]) time.Time <span class="cov0" title="0">{
+        v, err := b.ac.GetDateTimeAbs(index, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList, err)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (b *Batch) GetDateTimeRel(indexDate, indexTime int, options ...ArgOption[time.Time]) time.Time <span class="cov0" title="0">{
+        v, err := b.ac.GetDateTimeRel(indexDate, indexTime, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList, err)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (b *Batch) GetDateTime(indexDate, indexTime int, options ...ArgOption[time.Time]) time.Time <span class="cov0" title="0">{
+        v, err := b.ac.GetDateTime(indexDate, indexTime, options...)
+        if err != nil </span><span class="cov0" title="0">{
+                b.errorList = append(b.errorList, err)
+        }</span>
+        <span class="cov0" title="0">return v</span>
+}
+
+func (c Collector) Validate(minCount int) error <span class="cov0" title="0">{
+        if len(c.args) &lt; minCount </span><span class="cov0" title="0">{
+                return fmt.Errorf("at least %d args required", minCount)
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (c Collector) GetInt(index int, options ...ArgOption[int]) (int, error) <span class="cov0" title="0">{
+        options = append(options, withParsers(num.ParseInt))
+        return retrieve[int](c.args, index, options...)
+}</span>
+
+func (c Collector) GetString(index int, options ...ArgOption[string]) (string, error) <span class="cov0" title="0">{
+        options = append(options, withParsers(parseString))
+        return retrieve[string](c.args, index, options...)
+}</span>
+
+func (c Collector) GetListItem(index int, provider ListProvider, options ...ArgOption[any]) (any, error) <span class="cov0" title="0">{
+        options = append(options, withParsers(itemSelector(provider)))
+        return retrieve[any](c.args, index, options...)
+}</span>
+
+func (c Collector) GetDate(index int, options ...ArgOption[time.Time]) (time.Time, error) <span class="cov0" title="0">{
+        dateRelParser := datetime.NewParser().ParseRelativeDay
+        dateAbsParser := datetime.NewParser().DateParser(c.dateFormat)
+        optionsDate := append(options, withParsers(dateRelParser, dateAbsParser))
+        return retrieve[time.Time](c.args, index, optionsDate...)
+}</span>
+
+func (c Collector) GetDateAbs(index int, options ...ArgOption[time.Time]) (time.Time, error) <span class="cov8" title="1">{
+        parser := datetime.NewParser().DateParser(c.dateFormat)
+        options = append(options, withParsers(parser))
+        return retrieve[time.Time](c.args, index, options...)
+}</span>
+
+func (c Collector) GetDateTime(indexDate, indexTime int, options ...ArgOption[time.Time]) (time.Time, error) <span class="cov0" title="0">{
+
+        // parse date part
+        dateRelParser := datetime.NewParser().ParseRelativeDay
+        dateAbsParser := datetime.NewParser().DateParser(c.dateFormat)
+        optionsDate := append(options, withParsers(dateRelParser, dateAbsParser))
+        date, err := retrieve[time.Time](c.args, indexDate, optionsDate...)
+        if err != nil </span><span class="cov0" title="0">{
+                return time.Time{}, err
+        }</span>
+
+        // parse date with time
+        <span class="cov0" title="0">timeParser := datetime.NewParser().TimeParser(date, c.timeFormat)
+        optionsTime := append(options, withParsers(timeParser))
+        return retrieve[time.Time](c.args, indexTime, optionsTime...)</span>
+}
+
+func (c Collector) GetDateRel(index int, options ...ArgOption[time.Time]) (time.Time, error) <span class="cov0" title="0">{
+        parser := datetime.NewParser().ParseRelativeDay
+        options = append(options, withParsers(parser))
+        return retrieve[time.Time](c.args, index, options...)
+}</span>
+
+func (c Collector) GetWeek(index int, options ...ArgOption[time.Time]) (time.Time, error) <span class="cov0" title="0">{
+        dateRelParser := datetime.NewParser().ParseRelativeWeek
+        dateAbsParser := datetime.NewParser().DateParser(c.dateFormat)
+        optionsDate := append(options, withParsers(dateRelParser, dateAbsParser))
+        return retrieve[time.Time](c.args, index, optionsDate...)
+}</span>
+
+func (c Collector) GetWeekRel(index int, options ...ArgOption[time.Time]) (time.Time, error) <span class="cov0" title="0">{
+        parser := datetime.NewParser().ParseRelativeWeek
+        options = append(options, withParsers(parser))
+        return retrieve[time.Time](c.args, index, options...)
+}</span>
+
+func (c Collector) GetMonth(index int, options ...ArgOption[time.Time]) (time.Time, error) <span class="cov0" title="0">{
+        dateRelParser := datetime.NewParser().ParseRelativeMonth
+        dateAbsParser := datetime.NewParser().DateParser(c.dateFormat)
+        optionsDate := append(options, withParsers(dateRelParser, dateAbsParser))
+        return retrieve[time.Time](c.args, index, optionsDate...)
+}</span>
+
+func (c Collector) GetMonthRel(index int, options ...ArgOption[time.Time]) (time.Time, error) <span class="cov0" title="0">{
+        parser := datetime.NewParser().ParseRelativeMonth
+        options = append(options, withParsers(parser))
+        return retrieve[time.Time](c.args, index, options...)
+}</span>
+
+func (c Collector) GetDateTimeAbs(index int, options ...ArgOption[time.Time]) (time.Time, error) <span class="cov0" title="0">{
+        parser := datetime.NewParser().DateParser(c.dateTimeFormat)
+        options = append(options, withParsers(parser))
+        return retrieve[time.Time](c.args, index, options...)
+}</span>
+
+func (c Collector) GetDateTimeRel(indexDate, indexTime int, options ...ArgOption[time.Time]) (time.Time, error) <span class="cov0" title="0">{
+
+        // parse date part
+        dateParser := datetime.NewParser().ParseRelativeDay
+        optionsDate := append(options, withParsers(dateParser))
+        date, err := retrieve[time.Time](c.args, indexDate, optionsDate...)
+        if err != nil </span><span class="cov0" title="0">{
+                return time.Time{}, err
+        }</span>
+
+        // parse date with time
+        <span class="cov0" title="0">timeParser := datetime.NewParser().TimeParser(date, c.timeFormat)
+        optionsTime := append(options, withParsers(timeParser))
+        return retrieve[time.Time](c.args, indexTime, optionsTime...)</span>
+}
+
+func (c Collector) GetDuration(index int, options ...ArgOption[time.Duration]) (time.Duration, error) <span class="cov0" title="0">{
+        parser := datetime.NewParser().ParseDuration
+        options = append(options, withParsers(parser))
+        return retrieve[time.Duration](c.args, index, options...)
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package args
+
+import (
+        "fmt"
+        "github.com/rollicks-c/term/io"
+        "os"
+)
+
+func withParsers[T any](parsers ...argParser[T]) ArgOption[T] <span class="cov8" title="1">{
+        return func(ctx *ArgContext[T]) </span><span class="cov8" title="1">{
+                ctx.parsers = append(ctx.parsers, parsers...)
+        }</span>
+}
+
+func parseString(exp string) (string, error) <span class="cov0" title="0">{
+        return exp, nil
+}</span>
+
+func itemSelector(provider ListProvider) argParser[any] <span class="cov0" title="0">{
+        return func(exp string) (any, error) </span><span class="cov0" title="0">{
+
+                // filter
+                selection, err := provider.SearchItems(exp)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">if len(selection) == 0 </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("no item found for expression [%s]", exp)
+                }</span>
+                <span class="cov0" title="0">if len(selection) == 1 </span><span class="cov0" title="0">{
+                        return selection[0].Value, nil
+                }</span>
+
+                // choose
+                <span class="cov0" title="0">list := make(map[string]any)
+                for _, item := range selection </span><span class="cov0" title="0">{
+                        list[item.Name] = item.Value
+                }</span>
+                <span class="cov0" title="0">sel, err := io.New(os.Stdin, os.Stdout).Choose("choose exact item:", list)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+
+                <span class="cov0" title="0">return sel, nil</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package args
+
+import "fmt"
+
+type argParser[T any] func(string) (T, error)
+
+func retrieve[T any](args []string, index int, options ...ArgOption[T]) (T, error) <span class="cov8" title="1">{
+
+        // init context
+        ctx := &amp;ArgContext[T]{}
+        for _, opt := range options </span><span class="cov8" title="1">{
+                opt(ctx)
+        }</span>
+        <span class="cov8" title="1">if len(ctx.parsers) == 0 </span><span class="cov0" title="0">{
+                return ctx.value, fmt.Errorf("no parsers provided")
+        }</span>
+
+        // use default if arg not provided
+        <span class="cov8" title="1">if index &gt;= len(args) </span><span class="cov8" title="1">{
+                if ctx.defaultValue == nil </span><span class="cov8" title="1">{
+                        return ctx.value, fmt.Errorf("missing arg at index %d", index)
+                }</span>
+                <span class="cov8" title="1">return *ctx.defaultValue, nil</span>
+        }
+
+        // try parsers
+        <span class="cov0" title="0">var parsedValue T
+        var parseErr error
+        for _, p := range ctx.parsers </span><span class="cov0" title="0">{
+                value, err := p(args[index])
+                if err != nil </span><span class="cov0" title="0">{
+                        parseErr = err
+                        continue</span>
+                }
+                <span class="cov0" title="0">parsedValue = value
+                parseErr = nil
+                break</span>
+        }
+
+        <span class="cov0" title="0">return parsedValue, parseErr</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package term
+
+import (
+        "github.com/rollicks-c/term/args"
+        "github.com/rollicks-c/term/io"
+        "os"
+)
+
+func NewArgsCollector(argList []string, options ...args.CollectorOption) *args.Collector <span class="cov0" title="0">{
+        return args.NewCollector(argList, options...)
+}</span>
+
+func IO() *io.Module <span class="cov0" title="0">{
+        return io.New(os.Stdin, os.Stdout)
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package datetime
+
+import (
+        "fmt"
+        "strconv"
+        "strings"
+        "time"
+)
+
+type Parser struct {
+        now *time.Time
+}
+
+type ParserType = func(exp string) (time.Time, error)
+
+type Option func(p *Parser)
+
+func WithNow(now time.Time) Option <span class="cov8" title="1">{
+        return func(p *Parser) </span><span class="cov8" title="1">{
+                p.now = &amp;now
+        }</span>
+}
+
+func NewParser(opts ...Option) *Parser <span class="cov8" title="1">{
+        p := &amp;Parser{}
+        for _, opt := range opts </span><span class="cov8" title="1">{
+                opt(p)
+        }</span>
+        <span class="cov8" title="1">return p</span>
+}
+
+func DateOnly(t time.Time) time.Time <span class="cov8" title="1">{
+        y, m, d := t.Date()
+        date := time.Date(y, m, d, 0, 0, 0, 0, t.Location())
+        return date
+}</span>
+
+func (p Parser) ParseRelativeDay(exp string) (time.Time, error) <span class="cov8" title="1">{
+
+        // today
+        if exp == "-" </span><span class="cov8" title="1">{
+                return p.getNow(), nil
+        }</span>
+
+        // negative offset
+        <span class="cov8" title="1">if strings.HasSuffix(exp, "-") </span><span class="cov8" title="1">{
+                offsetRaw := strings.TrimSuffix(exp, "-")
+                offset, err := strconv.Atoi(offsetRaw)
+                if err != nil </span><span class="cov0" title="0">{
+                        return time.Time{}, err
+                }</span>
+                <span class="cov8" title="1">return p.getNow().Add(time.Duration(-offset) * time.Hour * 24), err</span>
+        }
+
+        // positive offset
+        <span class="cov8" title="1">if strings.HasSuffix(exp, "+") </span><span class="cov8" title="1">{
+                offsetRaw := strings.TrimSuffix(exp, "+")
+                offset, err := strconv.Atoi(offsetRaw)
+                if err != nil </span><span class="cov0" title="0">{
+                        return time.Time{}, err
+                }</span>
+                <span class="cov8" title="1">return p.getNow().Add(time.Duration(offset) * time.Hour * 24), err</span>
+        }
+
+        <span class="cov0" title="0">return time.Time{}, fmt.Errorf("invalid date expression: %s", exp)</span>
+
+}
+
+func (p Parser) ParseRelativeWeek(exp string) (time.Time, error) <span class="cov8" title="1">{
+
+        // today
+        if exp == "-" </span><span class="cov8" title="1">{
+                return p.getNow(), nil
+        }</span>
+
+        // negative offset
+        <span class="cov8" title="1">if strings.HasSuffix(exp, "-") </span><span class="cov8" title="1">{
+                offsetRaw := strings.TrimSuffix(exp, "-")
+                offset, err := strconv.Atoi(offsetRaw)
+                if err != nil </span><span class="cov0" title="0">{
+                        return time.Time{}, err
+                }</span>
+                <span class="cov8" title="1">return p.getNow().Add(time.Duration(-offset) * time.Hour * 24 * 7), err</span>
+        }
+
+        // positive offset
+        <span class="cov8" title="1">if strings.HasSuffix(exp, "+") </span><span class="cov8" title="1">{
+                offsetRaw := strings.TrimSuffix(exp, "+")
+                offset, err := strconv.Atoi(offsetRaw)
+                if err != nil </span><span class="cov0" title="0">{
+                        return time.Time{}, err
+                }</span>
+                <span class="cov8" title="1">return p.getNow().Add(time.Duration(offset) * time.Hour * 24 * 7), err</span>
+        }
+
+        <span class="cov0" title="0">return time.Time{}, fmt.Errorf("invalid date expression: %s", exp)</span>
+}
+
+func (p Parser) ParseRelativeMonth(exp string) (time.Time, error) <span class="cov0" title="0">{
+
+        // current month
+        if exp == "-" </span><span class="cov0" title="0">{
+                return p.getNow(), nil
+        }</span>
+
+        // negative offset
+        <span class="cov0" title="0">if strings.HasSuffix(exp, "-") </span><span class="cov0" title="0">{
+                offsetRaw := strings.TrimSuffix(exp, "-")
+                offset, err := strconv.Atoi(offsetRaw)
+                if err != nil </span><span class="cov0" title="0">{
+                        return time.Time{}, err
+                }</span>
+                <span class="cov0" title="0">y, m, _ := p.getNow().Date()
+                m -= time.Month(offset)
+                for </span><span class="cov0" title="0">{
+                        if m &gt; 0 </span><span class="cov0" title="0">{
+                                break</span>
+                        }
+                        <span class="cov0" title="0">y -= 1
+                        m += 12</span>
+                }
+                <span class="cov0" title="0">newMonth := time.Date(y, m, 1, 0, 0, 0, 0, p.getNow().Location())
+                return newMonth, nil</span>
+        }
+
+        <span class="cov0" title="0">return time.Time{}, fmt.Errorf("invalid date expression: %s", exp)</span>
+}
+
+func (p Parser) DateParser(dateFormat string) ParserType <span class="cov8" title="1">{
+        return func(exp string) (time.Time, error) </span><span class="cov8" title="1">{
+                date, err := time.Parse(dateFormat, exp)
+                if err != nil </span><span class="cov0" title="0">{
+                        return time.Time{}, err
+                }</span>
+                <span class="cov8" title="1">return date, nil</span>
+        }
+}
+
+func (p Parser) TimeParser(date time.Time, timeFormat string) ParserType <span class="cov0" title="0">{
+        return func(exp string) (time.Time, error) </span><span class="cov0" title="0">{
+                dtFormat := fmt.Sprintf("2006-01-02 %s", timeFormat)
+                dtExp := fmt.Sprintf("%s %s", date.Format("2006-01-02"), exp)
+                date, err := time.Parse(dtFormat, dtExp)
+                if err != nil </span><span class="cov0" title="0">{
+                        return time.Time{}, err
+                }</span>
+                <span class="cov0" title="0">return date, nil</span>
+        }
+}
+
+func (p Parser) ParseDuration(exp string) (time.Duration, error) <span class="cov8" title="1">{
+
+        // default: hours
+        if strings.HasSuffix(exp, "h") </span>{<span class="cov8" title="1">
+
+        }</span> else<span class="cov8" title="1"> if strings.HasSuffix(exp, "m") </span>{<span class="cov8" title="1">
+
+        }</span> else<span class="cov8" title="1"> {
+                exp += "h"
+        }</span>
+
+        // parse
+        <span class="cov8" title="1">dur, err := time.ParseDuration(exp)
+        if err != nil </span><span class="cov0" title="0">{
+                return time.Duration(0), err
+        }</span>
+        <span class="cov8" title="1">return dur, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package datetime
+
+import "time"
+
+func (p Parser) getNow() time.Time <span class="cov8" title="1">{
+        if p.now == nil </span><span class="cov0" title="0">{
+                return time.Now()
+        }</span>
+        <span class="cov8" title="1">return *p.now</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package num
+
+import "strconv"
+
+func ParseInt(exp string) (int, error) <span class="cov0" title="0">{
+        val, err := strconv.Atoi(exp)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+        <span class="cov0" title="0">return val, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package io
+
+import (
+        "bufio"
+        "fmt"
+        "github.com/manifoldco/promptui"
+        "strconv"
+        "strings"
+)
+
+func (m Module) Confirm(prompt string, v ...interface{}) bool <span class="cov0" title="0">{
+
+        msg := fmt.Sprintf("%s (y/n): ", prompt)
+        m.WarnF(msg, v...)
+        var response string
+        if _, err := fmt.Fscan(m.in, &amp;response); err != nil </span><span class="cov0" title="0">{
+                m.FailF("unable to read confirmation response: %v", err)
+        }</span>
+        <span class="cov0" title="0">response = strings.TrimSpace(strings.ToLower(response))
+        return response == "y"</span>
+
+}
+
+func (m Module) ChooseManual(prompt string, min, max int, v ...interface{}) (int, bool) <span class="cov0" title="0">{
+
+        // prompt
+        msg := fmt.Sprintf("%s: ", prompt)
+        m.WarnF(msg, v...)
+
+        // get response
+        buf := bufio.NewReader(m.in)
+        response, err := buf.ReadString('\n')
+        response = strings.ReplaceAll(response, "\n", "")
+
+        // no response
+        if strings.TrimSpace(response) == "" </span><span class="cov0" title="0">{
+                return -1, false
+        }</span>
+
+        // validate response
+        <span class="cov0" title="0">choice, err := strconv.Atoi(response)
+        if err != nil </span><span class="cov0" title="0">{
+                m.FailF("invalid input: %s\n\n", response)
+                return -1, false
+        }</span>
+        <span class="cov0" title="0">if choice &lt; min || choice &gt; max </span><span class="cov0" title="0">{
+                m.FailF("invalid input: %s\n\n", response)
+                return -1, false
+        }</span>
+
+        // valid response
+        <span class="cov0" title="0">response = strings.TrimSpace(strings.ToLower(response))
+        return choice, true</span>
+
+}
+
+func (m Module) Choose(prompt string, list map[string]any) (any, error) <span class="cov0" title="0">{
+
+        candidates := make([]string, 0, len(list))
+        for k := range list </span><span class="cov0" title="0">{
+                candidates = append(candidates, k)
+        }</span>
+
+        <span class="cov0" title="0">selector := promptui.Select{
+                Label:     prompt,
+                Items:     candidates,
+                CursorPos: 0,
+                Templates: &amp;promptui.SelectTemplates{Details: ""},
+        }
+        _, result, err := selector.Run()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">selectedTask, ok := list[result]
+        if !ok </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("invalid task: %s", result)
+        }</span>
+        <span class="cov0" title="0">return selectedTask, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package io
+
+import "io"
+
+type Module struct {
+        in        io.Reader
+        out       io.Writer
+        debugMode bool
+}
+
+type Option func(*Module)
+
+func New(in io.Reader, out io.Writer, options ...Option) *Module <span class="cov0" title="0">{
+        m := &amp;Module{
+                in:        in,
+                out:       out,
+                debugMode: false,
+        }
+        for _, opt := range options </span><span class="cov0" title="0">{
+                opt(m)
+        }</span>
+        <span class="cov0" title="0">return m</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package io
+
+import (
+        "fmt"
+        "os"
+)
+
+var DebugMode = false
+
+var (
+        Info    = Purple
+        Warn    = Yellow
+        Fatal   = Red
+        Success = Green
+)
+
+var (
+        Default = Color("%s")
+        Black   = Color("\033[1;30m%s\033[0m")
+        Red     = Color("\033[1;31m%s\033[0m")
+        Green   = Color("\033[1;32m%s\033[0m")
+        Yellow  = Color("\033[1;33m%s\033[0m")
+        Purple  = Color("\033[1;34m%s\033[0m")
+        Magenta = Color("\033[1;35m%s\033[0m")
+        Teal    = Color("\033[1;36m%s\033[0m")
+        White   = Color("\033[1;37m%s\033[0m")
+)
+
+type ColPrint = func(...interface{}) string
+
+func Color(colorString string) func(...interface{}) string <span class="cov8" title="1">{
+        sprint := func(args ...interface{}) string </span><span class="cov0" title="0">{
+                return fmt.Sprintf(colorString,
+                        fmt.Sprint(args...))
+        }</span>
+        <span class="cov8" title="1">return sprint</span>
+}
+
+func (m Module) Errorf(format string, v ...interface{}) error <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        return fmt.Errorf(Red(msg))
+}</span>
+
+func (m Module) TextF(format string, v ...interface{}) <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        if _, err := fmt.Fprint(m.out, White(msg)); err != nil </span><span class="cov0" title="0">{
+                fmt.Print(err)
+        }</span>
+}
+
+func (m Module) InfoF(format string, v ...interface{}) <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        if _, err := fmt.Fprint(m.out, Info(msg)); err != nil </span><span class="cov0" title="0">{
+                fmt.Print(err)
+        }</span>
+}
+
+func (m Module) PrintF(col ColPrint, format string, v ...interface{}) <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        if _, err := fmt.Fprint(m.out, col(msg)); err != nil </span><span class="cov0" title="0">{
+                fmt.Print(err)
+        }</span>
+}
+
+func (m Module) SPrintF(col ColPrint, format string, v ...interface{}) string <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        return col(msg)
+}</span>
+
+func (m Module) WarnF(format string, v ...interface{}) <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        if _, err := fmt.Fprint(m.out, Warn(msg)); err != nil </span><span class="cov0" title="0">{
+                fmt.Print(err)
+        }</span>
+}
+
+func (m Module) FailF(format string, v ...interface{}) <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        if _, err := fmt.Fprint(m.out, Fatal(msg)); err != nil </span><span class="cov0" title="0">{
+                fmt.Print(err)
+        }</span>
+}
+func (m Module) SFailF(format string, v ...interface{}) error <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        return fmt.Errorf(msg)
+}</span>
+func (m Module) FatalF(format string, v ...interface{}) <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        if _, err := fmt.Fprint(m.out, Fatal(msg)); err != nil </span><span class="cov0" title="0">{
+                fmt.Print(err)
+        }</span>
+        <span class="cov0" title="0">os.Exit(1)</span>
+}
+
+func (m Module) DebugF(format string, v ...interface{}) <span class="cov0" title="0">{
+        if !m.debugMode </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">msg := fmt.Sprintf(format, v...)
+        if _, err := fmt.Fprint(m.out, Red(msg)); err != nil </span><span class="cov0" title="0">{
+                fmt.Print(err)
+        }</span>
+}
+
+func (m Module) SuccessF(format string, v ...interface{}) <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        if _, err := fmt.Fprint(m.out, Success(msg)); err != nil </span><span class="cov0" title="0">{
+                fmt.Print(err)
+        }</span>
+}
+
+func (m Module) ConditionalColor(value int) ColPrint <span class="cov0" title="0">{
+        if value &gt; 0 </span><span class="cov0" title="0">{
+                return Success
+        }</span>
+        <span class="cov0" title="0">if value == 0 </span><span class="cov0" title="0">{
+                return White
+        }</span>
+        <span class="cov0" title="0">return Warn</span>
+}
+
+func (m Module) PrintFConditional(value int, format string, v ...interface{}) <span class="cov0" title="0">{
+        col := m.ConditionalColor(value)
+        m.PrintF(col, format, v...)
+}</span>
+
+func (m Module) StatusColor(status string) func(...interface{}) string <span class="cov0" title="0">{
+        switch status </span>{
+        case "success":<span class="cov0" title="0">
+                return Success</span>
+        case "failed":<span class="cov0" title="0">
+                return Fatal</span>
+        case "none":<span class="cov0" title="0">
+                return White</span>
+        default:<span class="cov0" title="0">
+                return Warn</span>
+        }
+
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package table
+
+import (
+        "fmt"
+)
+
+type Option func(config *Config)
+
+type CellRenderer[T any] func(record T, header string) (string, string)
+
+type Config struct {
+        HideHeaders bool
+        Indention   string
+}
+
+type Builder[T any] struct {
+        renderContext *renderContext[T]
+        headers       []string
+        rows          []row[T]
+        cells         [][]Cell
+        footer        map[string]Cell
+        config        *Config
+}
+
+func NewBuilder[T any](options ...Option) *Builder[T] <span class="cov0" title="0">{
+        t := &amp;Builder[T]{
+                headers: []string{},
+                rows:    []row[T]{},
+                renderContext: &amp;renderContext[T]{
+                        cellRenderer: func(value T, header string) (string, string) </span><span class="cov0" title="0">{
+                                return "%s", fmt.Sprintf("%v", value)
+                        }</span>,
+                },
+
+                footer: make(map[string]Cell),
+                config: &amp;Config{
+                        HideHeaders: false,
+                },
+        }
+        <span class="cov0" title="0">for _, opt := range options </span><span class="cov0" title="0">{
+                opt(t.config)
+        }</span>
+        <span class="cov0" title="0">return t</span>
+}
+
+func (t *Builder[T]) AddHeaders(row ...string) *Builder[T] <span class="cov0" title="0">{
+        t.headers = append(t.headers, row...)
+        return t
+}</span>
+
+func (t *Builder[T]) AddCellFormatter(cf CellRenderer[T]) *Builder[T] <span class="cov0" title="0">{
+        t.renderContext.cellRenderer = cf
+        return t
+}</span>
+
+func (t *Builder[T]) AddRow(rows ...T) *Builder[T] <span class="cov0" title="0">{
+        for _, r := range rows </span><span class="cov0" title="0">{
+                t.rows = append(t.rows, dataRow[T]{
+                        record: r,
+                })
+        }</span>
+        <span class="cov0" title="0">return t</span>
+}
+
+func (t *Builder[T]) AddSeparator(char string) *Builder[T] <span class="cov0" title="0">{
+        t.rows = append(t.rows, separatorRow[T]{
+                char: char,
+        })
+        return t
+}</span>
+
+func (t *Builder[T]) AddCustomCell(header, value, style string) *Builder[T] <span class="cov0" title="0">{
+        cr := customRow[T]{
+                data: make(map[string]dataCell),
+        }
+        t.rows = append(t.rows, cr)
+        return t.AppendCustomCell(header, value, style)
+}</span>
+
+func (t *Builder[T]) AppendCustomCell(header, value, style string) *Builder[T] <span class="cov0" title="0">{
+        cr := t.ensureCustomRow()
+        cell := dataCell{
+                value: value,
+                style: style,
+        }
+        cr.data[header] = cell
+        t.rows[len(t.rows)-1] = cr
+        return t
+}</span>
+
+func (t *Builder[T]) ensureCustomRow() customRow[T] <span class="cov0" title="0">{
+
+        // table is empty
+        if len(t.rows) == 0 </span><span class="cov0" title="0">{
+                cr := customRow[T]{
+                        data: make(map[string]dataCell),
+                }
+                t.rows = append(t.rows, cr)
+                return cr
+        }</span>
+
+        // last row is not custom row
+        <span class="cov0" title="0">cr, ok := t.rows[len(t.rows)-1].(customRow[T])
+        if !ok </span><span class="cov0" title="0">{
+                cr = customRow[T]{
+                        data: make(map[string]dataCell),
+                }
+                t.rows = append(t.rows, cr)
+        }</span>
+
+        <span class="cov0" title="0">return cr</span>
+}
+
+func (t *Builder[T]) AddFooterCell(header, value, style string) *Builder[T] <span class="cov0" title="0">{
+        cell := dataCell{
+                value: value,
+                style: style,
+        }
+        t.footer[header] = cell
+        return t
+}</span>
+
+func (t *Builder[T]) Build() string <span class="cov0" title="0">{
+
+        // create cells
+        t.createCells()
+
+        // determine max width of each column
+        maxWidths := t.getMaxWidths()
+
+        // render
+        var table string
+        table += t.config.Indention
+
+        // print headers
+        table += t.renderHeaders(maxWidths)
+
+        // print rows
+        table += fmt.Sprintf("\n%s", t.config.Indention)
+        table += t.renderRows(maxWidths)
+
+        // print footer
+        table += t.renderFooter(maxWidths)
+        table += "\n"
+
+        return table
+}</span>
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package table
+
+import (
+        "fmt"
+        "strings"
+)
+
+type Cell interface {
+        Render(width int) string
+        Len() int
+}
+
+type dataCell struct {
+        value string
+        style string
+}
+type separatorCell struct {
+        char string
+}
+
+func (dc dataCell) Render(width int) string <span class="cov0" title="0">{
+        valuePadded := fmt.Sprintf("%-*s", width, dc.value)
+        content := fmt.Sprintf(dc.style, valuePadded)
+        return content
+}</span>
+func (dc dataCell) Len() int <span class="cov0" title="0">{
+        return len(dc.value)
+}</span>
+
+func (sc separatorCell) Render(width int) string <span class="cov0" title="0">{
+        return strings.Repeat(sc.char, width)
+}</span>
+
+func (sc separatorCell) Len() int <span class="cov0" title="0">{
+        return 1
+}</span>
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package table
+
+import (
+        "fmt"
+        "strings"
+)
+
+func (t *Builder[T]) getMaxWidths() []int <span class="cov0" title="0">{
+
+        // determine max width of each column
+        maxWidths := make([]int, len(t.headers))
+
+        // header and footer
+        for i, header := range t.headers </span><span class="cov0" title="0">{
+                if t.config.HideHeaders </span><span class="cov0" title="0">{
+                        maxWidths[i] = 0
+                }</span> else<span class="cov0" title="0"> {
+                        maxWidths[i] = len(header)
+                }</span>
+                <span class="cov0" title="0">footer, ok := t.footer[header]
+                if !ok </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov0" title="0">if footer.Len() &gt; maxWidths[i] </span><span class="cov0" title="0">{
+                        maxWidths[i] = footer.Len()
+                }</span>
+        }
+
+        // cells
+        <span class="cov0" title="0">for _, row := range t.cells </span><span class="cov0" title="0">{
+                for colIndex, cell := range row </span><span class="cov0" title="0">{
+                        if cell.Len() &gt; maxWidths[colIndex] </span><span class="cov0" title="0">{
+                                maxWidths[colIndex] = cell.Len()
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">return maxWidths</span>
+}
+
+func (t *Builder[T]) createCells() <span class="cov0" title="0">{
+        t.cells = make([][]Cell, len(t.rows))
+        for rowIndex := range t.rows </span><span class="cov0" title="0">{
+                t.cells[rowIndex] = make([]Cell, len(t.headers))
+                record := t.rows[rowIndex]
+                for colIndex, header := range t.headers </span><span class="cov0" title="0">{
+                        cell := record.RenderCell(*t.renderContext, header)
+                        t.cells[rowIndex][colIndex] = cell
+                }</span>
+        }
+}
+
+func (t *Builder[T]) renderHeaders(maxWidths []int) string <span class="cov0" title="0">{
+
+        // no headers
+        if t.config.HideHeaders </span><span class="cov0" title="0">{
+                return ""
+        }</span>
+
+        // render headers
+        <span class="cov0" title="0">out := ""
+        for i, header := range t.headers </span><span class="cov0" title="0">{
+                padLen := maxWidths[i]
+                exp := fmt.Sprintf("%-*s", padLen, header)
+                out += exp
+                if i &lt; len(t.headers)-1 </span><span class="cov0" title="0">{
+                        out += "\t"
+                }</span>
+        }
+
+        // render separator
+        <span class="cov0" title="0">out += fmt.Sprintf("\n%s", t.config.Indention)
+        for i := range t.headers </span><span class="cov0" title="0">{
+                padLen := maxWidths[i]
+                exp := strings.Repeat("-", padLen)
+                out += exp
+                if i &lt; len(t.headers)-1 </span><span class="cov0" title="0">{
+                        out += "\t"
+                }</span>
+        }
+
+        <span class="cov0" title="0">return out</span>
+}
+
+func (t *Builder[T]) renderRows(maxWidths []int) string <span class="cov0" title="0">{
+
+        out := ""
+
+        // iterate all cells
+        for rowIndex := range t.rows </span><span class="cov0" title="0">{
+                for colIndex := range t.headers </span><span class="cov0" title="0">{
+
+                        // render
+                        padLen := maxWidths[colIndex]
+                        cell := t.cells[rowIndex][colIndex].Render(padLen)
+
+                        // append
+                        out += cell
+                        if colIndex &lt; len(t.headers)-1 </span><span class="cov0" title="0">{
+                                out += "\t"
+                        }</span>
+                }
+                <span class="cov0" title="0">out += fmt.Sprintf("\n%s", t.config.Indention)</span>
+        }
+
+        <span class="cov0" title="0">return out</span>
+}
+
+func (t *Builder[T]) renderFooter(maxWidths []int) string <span class="cov0" title="0">{
+
+        // no footer
+        if len(t.footer) == 0 </span><span class="cov0" title="0">{
+                return ""
+        }</span>
+
+        <span class="cov0" title="0">out := ""
+
+        // render separator
+        for i := range t.headers </span><span class="cov0" title="0">{
+                padLen := maxWidths[i]
+                _, ok := t.footer[t.headers[i]]
+                char := " "
+                if ok </span><span class="cov0" title="0">{
+                        char = "-"
+                }</span>
+                <span class="cov0" title="0">out += strings.Repeat(char, padLen)
+                if i &lt; len(t.headers)-1 </span><span class="cov0" title="0">{
+                        out += "\t"
+                }</span>
+        }
+
+        // render footer
+        <span class="cov0" title="0">out += fmt.Sprintf("\n%s", t.config.Indention)
+        for i := range t.headers </span><span class="cov0" title="0">{
+                padLen := maxWidths[i]
+                cell, ok := t.footer[t.headers[i]]
+                if !ok </span><span class="cov0" title="0">{
+                        exp := strings.Repeat(" ", padLen)
+                        out += exp
+                }</span> else<span class="cov0" title="0"> {
+                        out += cell.Render(padLen)
+                }</span>
+                <span class="cov0" title="0">if i &lt; len(t.headers)-1 </span><span class="cov0" title="0">{
+                        out += "\t"
+                }</span>
+        }
+
+        <span class="cov0" title="0">return out</span>
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package table
+
+import "strings"
+
+type renderContext[T any] struct {
+        cellRenderer CellRenderer[T]
+}
+
+type row[T any] interface {
+        RenderCell(ctx renderContext[T], header string) Cell
+}
+
+type dataRow[T any] struct {
+        record T
+}
+
+func (d dataRow[T]) RenderCell(ctx renderContext[T], header string) Cell <span class="cov0" title="0">{
+
+        // apply formatters
+        style, valueRaw := ctx.cellRenderer(d.record, header)
+
+        // escape
+        valueRaw = strings.ReplaceAll(valueRaw, "\n", "\\n")
+
+        // wrap
+        return dataCell{
+                value: valueRaw,
+                style: style,
+        }
+}</span>
+
+type separatorRow[T any] struct {
+        char string
+}
+
+func (s separatorRow[T]) RenderCell(ctx renderContext[T], header string) Cell <span class="cov0" title="0">{
+        return separatorCell{
+                char: s.char,
+        }
+}</span>
+
+type customRow[T any] struct {
+        data map[string]dataCell
+}
+
+func (c customRow[T]) RenderCell(ctx renderContext[T], header string) Cell <span class="cov0" title="0">{
+        data, ok := c.data[header]
+        if !ok </span><span class="cov0" title="0">{
+                return dataCell{
+                        value: "",
+                        style: "%s",
+                }
+        }</span>
+        <span class="cov0" title="0">return data</span>
+}
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package term
+
+import "fmt"
+
+var DebugMode = false
+
+var (
+        Info    = Purple
+        Warn    = Yellow
+        Fatal   = Red
+        Success = Green
+)
+
+var (
+        Default = Color("%s")
+        Black   = Color("\033[1;30m%s\033[0m")
+        Red     = Color("\033[1;31m%s\033[0m")
+        Green   = Color("\033[1;32m%s\033[0m")
+        Yellow  = Color("\033[1;33m%s\033[0m")
+        Purple  = Color("\033[1;34m%s\033[0m")
+        Magenta = Color("\033[1;35m%s\033[0m")
+        Teal    = Color("\033[1;36m%s\033[0m")
+        White   = Color("\033[1;37m%s\033[0m")
+)
+
+type ColPrint = func(...interface{}) string
+
+func Color(colorString string) func(...interface{}) string <span class="cov0" title="0">{
+        sprint := func(args ...interface{}) string </span><span class="cov0" title="0">{
+                return fmt.Sprintf(colorString,
+                        fmt.Sprint(args...))
+        }</span>
+        <span class="cov0" title="0">return sprint</span>
+}
+
+func Errorf(format string, v ...interface{}) error <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        return fmt.Errorf(Red(msg))
+}</span>
+
+func Textf(format string, v ...interface{}) <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        fmt.Print(White(msg))
+}</span>
+
+func Infof(format string, v ...interface{}) <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        fmt.Print(Info(msg))
+}</span>
+
+func Printf(col ColPrint, format string, v ...interface{}) <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        fmt.Print(col(msg))
+}</span>
+
+func Sprintf(col ColPrint, format string, v ...interface{}) string <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        return col(msg)
+}</span>
+
+func Warnf(format string, v ...interface{}) <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        fmt.Print(Warn(msg))
+}</span>
+
+func Failf(format string, v ...interface{}) <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        fmt.Print(Fatal(msg))
+}</span>
+func Sfailf(format string, v ...interface{}) error <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        fmt.Print(Fatal(msg))
+        return fmt.Errorf(msg)
+}</span>
+
+func DebugF(format string, v ...interface{}) <span class="cov0" title="0">{
+        if !DebugMode </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">msg := fmt.Sprintf(format, v...)
+        fmt.Print(Red(msg))</span>
+}
+
+func Successf(format string, v ...interface{}) <span class="cov0" title="0">{
+        msg := fmt.Sprintf(format, v...)
+        fmt.Print(Success(msg))
+}</span>
+
+func ConditionalColor(value int) ColPrint <span class="cov0" title="0">{
+        if value &gt; 0 </span><span class="cov0" title="0">{
+                return Success
+        }</span>
+        <span class="cov0" title="0">if value == 0 </span><span class="cov0" title="0">{
+                return White
+        }</span>
+        <span class="cov0" title="0">return Warn</span>
+}
+
+func PrintfConditional(value int, format string, v ...interface{}) <span class="cov0" title="0">{
+        col := ConditionalColor(value)
+        Printf(col, format, v...)
+}</span>
+
+func StatusColor(status string) func(...interface{}) string <span class="cov0" title="0">{
+        switch status </span>{
+        case "success":<span class="cov0" title="0">
+                return Success</span>
+        case "failed":<span class="cov0" title="0">
+                return Fatal</span>
+        case "none":<span class="cov0" title="0">
+                return White</span>
+        default:<span class="cov0" title="0">
+                return Warn</span>
+        }
+
+}
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package term
+
+import (
+        "fmt"
+        "github.com/manifoldco/promptui"
+        "strconv"
+        "strings"
+)
+
+func PromptSecret(prompt string) (string, error) <span class="cov0" title="0">{
+
+        dataPrompt := promptui.Prompt{
+                Label:   prompt,
+                Default: "",
+                Mask:    '*',
+                Validate: func(s string) error </span><span class="cov0" title="0">{
+                        if strings.TrimSpace(s) == "" </span><span class="cov0" title="0">{
+                                return fmt.Errorf("value required")
+                        }</span>
+                        <span class="cov0" title="0">return nil</span>
+                },
+        }
+        <span class="cov0" title="0">value, err := dataPrompt.Run()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov0" title="0">return value, nil</span>
+
+}
+
+func PromptString(prompt, defaultValue string) (string, error) <span class="cov0" title="0">{
+
+        dataPrompt := promptui.Prompt{
+                Label:   fmt.Sprintf("%s (%s)", prompt, defaultValue),
+                Default: defaultValue,
+                Validate: func(s string) error </span><span class="cov0" title="0">{
+                        if strings.TrimSpace(s) == "" </span><span class="cov0" title="0">{
+                                return fmt.Errorf("value required")
+                        }</span>
+                        <span class="cov0" title="0">return nil</span>
+                },
+        }
+        <span class="cov0" title="0">value, err := dataPrompt.Run()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov0" title="0">return value, nil</span>
+
+}
+
+func PromptStringOptional(prompt, defaultValue string) (string, error) <span class="cov0" title="0">{
+
+        dataPrompt := promptui.Prompt{
+                Label:   fmt.Sprintf("%s (%s)", prompt, defaultValue),
+                Default: defaultValue,
+        }
+        value, err := dataPrompt.Run()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov0" title="0">return value, nil</span>
+
+}
+
+func PromptInt(prompt string, defaultValue int) (int, error) <span class="cov0" title="0">{
+
+        dataPrompt := promptui.Prompt{
+                Label:   fmt.Sprintf("%s (%d)", prompt, defaultValue),
+                Default: fmt.Sprintf("%d", defaultValue),
+                Validate: func(s string) error </span><span class="cov0" title="0">{
+                        if _, err := strconv.Atoi(s); err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                        <span class="cov0" title="0">return nil</span>
+                },
+        }
+        <span class="cov0" title="0">valueRaw, err := dataPrompt.Run()
+        if err != nil </span><span class="cov0" title="0">{
+                return defaultValue, err
+        }</span>
+        <span class="cov0" title="0">value, err := strconv.Atoi(valueRaw)
+        if err != nil </span><span class="cov0" title="0">{
+                return defaultValue, err
+        }</span>
+        <span class="cov0" title="0">return value, nil</span>
+
+}
+
+func PromptFloat(prompt string, defaultValue float64) (float64, error) <span class="cov0" title="0">{
+
+        dataPrompt := promptui.Prompt{
+                Label:   fmt.Sprintf("%s (%f)", prompt, defaultValue),
+                Default: fmt.Sprintf("%f", defaultValue),
+                Validate: func(s string) error </span><span class="cov0" title="0">{
+                        if _, err := strconv.ParseFloat(s, 64); err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                        <span class="cov0" title="0">return nil</span>
+                },
+        }
+        <span class="cov0" title="0">valueRaw, err := dataPrompt.Run()
+        if err != nil </span><span class="cov0" title="0">{
+                return defaultValue, err
+        }</span>
+        <span class="cov0" title="0">value, err := strconv.ParseFloat(valueRaw, 64)
+        if err != nil </span><span class="cov0" title="0">{
+                return defaultValue, err
+        }</span>
+        <span class="cov0" title="0">return value, nil</span>
+
+}
+</pre>
+		
+		<pre class="file" id="file16" style="display: none">package term
+
+import (
+        "fmt"
+        "strings"
+)
+
+type CellFormatter func(value string, rowIndex, colIndex int) (string, string)
+
+type ColFormatter func(value string, rowIndex int) (string, string)
+
+type TableViewBuilder struct {
+        cellFormatter CellFormatter
+        colFormatters map[string]ColFormatter
+        headers       []string
+        rows          [][]string
+}
+
+func TableView() *TableViewBuilder <span class="cov0" title="0">{
+        return &amp;TableViewBuilder{
+                headers: []string{},
+                rows:    [][]string{},
+                cellFormatter: func(value string, rowIndex, colIndex int) (string, string) </span><span class="cov0" title="0">{
+                        return "%s", value
+                }</span>,
+                colFormatters: map[string]ColFormatter{},
+        }
+}
+
+func (t *TableViewBuilder) AddHeaders(row ...string) *TableViewBuilder <span class="cov0" title="0">{
+        t.headers = append(t.headers, row...)
+        return t
+}</span>
+
+func (t *TableViewBuilder) AddCellFormatter(cf CellFormatter) *TableViewBuilder <span class="cov0" title="0">{
+        t.cellFormatter = cf
+        return t
+}</span>
+
+func (t *TableViewBuilder) AddColFormatter(col string, cf ColFormatter) *TableViewBuilder <span class="cov0" title="0">{
+        t.colFormatters[col] = cf
+        return t
+}</span>
+
+func (t *TableViewBuilder) AddRow(row ...string) *TableViewBuilder <span class="cov0" title="0">{
+        t.rows = append(t.rows, row)
+        return t
+}</span>
+
+func (t *TableViewBuilder) Build() string <span class="cov0" title="0">{
+
+        // determine max width of each column
+        maxWidths := make([]int, len(t.headers))
+        for i, header := range t.headers </span><span class="cov0" title="0">{
+                maxWidths[i] = len(header)
+        }</span>
+        <span class="cov0" title="0">for _, row := range t.rows </span><span class="cov0" title="0">{
+                for colIndex, cell := range row </span><span class="cov0" title="0">{
+                        if len(cell) &gt; maxWidths[colIndex] </span><span class="cov0" title="0">{
+                                maxWidths[colIndex] = len(cell)
+                        }</span>
+                }
+        }
+
+        // print headers
+        <span class="cov0" title="0">var table string
+        for i, header := range t.headers </span><span class="cov0" title="0">{
+                padLen := maxWidths[i]
+                exp := fmt.Sprintf("%-*s", padLen, header)
+                table += exp
+                if i &lt; len(t.headers)-1 </span><span class="cov0" title="0">{
+                        table += "\t"
+                }</span>
+        }
+        <span class="cov0" title="0">table += "\n"
+        for i := range t.headers </span><span class="cov0" title="0">{
+                padLen := maxWidths[i]
+                exp := strings.Repeat("-", padLen)
+                table += exp
+                if i &lt; len(t.headers)-1 </span><span class="cov0" title="0">{
+                        table += "\t"
+                }</span>
+        }
+
+        // print rows
+        <span class="cov0" title="0">table += "\n"
+        for rowIndex := range t.rows </span><span class="cov0" title="0">{
+                for colIndex := range t.rows[rowIndex] </span><span class="cov0" title="0">{
+
+                        // render
+                        cell := t.renderCell(rowIndex, colIndex, maxWidths)
+
+                        // append
+                        table += cell
+                        if colIndex &lt; len(t.rows[rowIndex])-1 </span><span class="cov0" title="0">{
+                                table += "\t"
+                        }</span>
+                }
+                <span class="cov0" title="0">table += "\n"</span>
+        }
+        <span class="cov0" title="0">return table</span>
+}
+
+func (t *TableViewBuilder) renderCell(rowIndex, colIndex int, widths []int) string <span class="cov0" title="0">{
+
+        // gather data
+        padLen := widths[colIndex]
+        cell := t.rows[rowIndex][colIndex]
+
+        // apply formatters
+        style, value := t.cellFormatter(cell, rowIndex, colIndex)
+        if colFormatter, ok := t.colFormatters[t.headers[colIndex]]; ok </span><span class="cov0" title="0">{
+                style, value = colFormatter(cell, rowIndex)
+        }</span>
+
+        // escape
+        <span class="cov0" title="0">value = strings.ReplaceAll(value, "\n", "\\n")
+
+        // render
+        exp := fmt.Sprintf("%-*s", padLen, value)
+        exp = fmt.Sprintf(style, exp)
+
+        return exp</span>
+}
+</pre>
+		
+		<pre class="file" id="file17" style="display: none">package term
+
+import (
+        "github.com/rollicks-c/term/io/table"
+)
+
+func WithHideHeaders(state bool) table.Option <span class="cov0" title="0">{
+        return func(config *table.Config) </span><span class="cov0" title="0">{
+                config.HideHeaders = state
+        }</span>
+}
+
+func WithIndention(chars string) table.Option <span class="cov0" title="0">{
+        return func(config *table.Config) </span><span class="cov0" title="0">{
+                config.Indention = chars
+        }</span>
+}
+
+func TableEx[T any](options ...table.Option) *table.Builder[T] <span class="cov0" title="0">{
+        return table.NewBuilder[T](options...)
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
