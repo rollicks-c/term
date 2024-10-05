@@ -19,3 +19,7 @@ func WithIndention(chars string) table.Option {
 func TableEx[T any](options ...table.Option) *table.Builder[T] {
 	return table.NewBuilder[T](options...)
 }
+
+func ObjectToTable(obj any, options ...table.Option) *table.Builder[table.FlatObject] {
+	return table.FromObject(obj, options...)
+}

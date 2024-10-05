@@ -43,104 +43,114 @@ func NewBuilder[T any](options ...Option) *Builder[T] {
 	return t
 }
 
-func (t *Builder[T]) AddHeaders(row ...string) *Builder[T] {
-	t.headers = append(t.headers, row...)
-	return t
+func (b *Builder[T]) AddHeaders(row ...string) *Builder[T] {
+	b.headers = append(b.headers, row...)
+	return b
 }
 
-func (t *Builder[T]) AddCellFormatter(cf CellRenderer[T]) *Builder[T] {
-	t.renderContext.cellRenderer = cf
-	return t
+func (b *Builder[T]) AddCellFormatter(cf CellRenderer[T]) *Builder[T] {
+	b.renderContext.cellRenderer = cf
+	return b
 }
 
-func (t *Builder[T]) AddRow(rows ...T) *Builder[T] {
+func (b *Builder[T]) AddRow(rows ...T) *Builder[T] {
 	for _, r := range rows {
-		t.rows = append(t.rows, dataRow[T]{
+		b.rows = append(b.rows, dataRow[T]{
 			record: r,
 		})
 	}
-	return t
+	return b
 }
 
-func (t *Builder[T]) AddSeparator(char string) *Builder[T] {
-	t.rows = append(t.rows, separatorRow[T]{
+func (b *Builder[T]) AddSeparator(char string) *Builder[T] {
+	b.rows = append(b.rows, separatorRow[T]{
 		char: char,
 	})
-	return t
+	return b
 }
 
-func (t *Builder[T]) AddCustomCell(header, value, style string) *Builder[T] {
+func (b *Builder[T]) AddCustomCell(header, value, style string) *Builder[T] {
 	cr := customRow[T]{
 		data: make(map[string]dataCell),
 	}
-	t.rows = append(t.rows, cr)
-	return t.AppendCustomCell(header, value, style)
+	b.rows = append(b.rows, cr)
+	return b.AppendCustomCell(header, value, style)
 }
 
-func (t *Builder[T]) AppendCustomCell(header, value, style string) *Builder[T] {
-	cr := t.ensureCustomRow()
+func (b *Builder[T]) AppendCustomCell(header, value, style string) *Builder[T] {
+	cr := b.ensureCustomRow()
 	cell := dataCell{
 		value: value,
 		style: style,
 	}
 	cr.data[header] = cell
-	t.rows[len(t.rows)-1] = cr
-	return t
+	b.rows[len(b.rows)-1] = cr
+	return b
 }
 
-func (t *Builder[T]) ensureCustomRow() customRow[T] {
+func (b *Builder[T]) DefaultFormatter() *Builder[T] {
+
+	cf := func(record T, header string) (string, string) {
+		return "%s", fmt.Sprintf("%v", record)
+	}
+	b.AddCellFormatter(cf)
+	return b
+
+}
+
+func (b *Builder[T]) ensureCustomRow() customRow[T] {
 
 	// table is empty
-	if len(t.rows) == 0 {
+	if len(b.rows) == 0 {
 		cr := customRow[T]{
 			data: make(map[string]dataCell),
 		}
-		t.rows = append(t.rows, cr)
+		b.rows = append(b.rows, cr)
 		return cr
 	}
 
 	// last row is not custom row
-	cr, ok := t.rows[len(t.rows)-1].(customRow[T])
+	cr, ok := b.rows[len(b.rows)-1].(customRow[T])
 	if !ok {
 		cr = customRow[T]{
 			data: make(map[string]dataCell),
 		}
-		t.rows = append(t.rows, cr)
+		b.rows = append(b.rows, cr)
 	}
 
 	return cr
 }
 
-func (t *Builder[T]) AddFooterCell(header, value, style string) *Builder[T] {
+func (b *Builder[T]) AddFooterCell(header, value, style string) *Builder[T] {
 	cell := dataCell{
 		value: value,
 		style: style,
 	}
-	t.footer[header] = cell
-	return t
+	b.footer[header] = cell
+	return b
 }
 
-func (t *Builder[T]) Build() string {
+func (b *Builder[T]) Build() string {
 
 	// create cells
-	t.createCells()
+	b.createCells()
 
 	// determine max width of each column
-	maxWidths := t.getMaxWidths()
+	maxWidths := b.getMaxWidths()
 
 	// render
 	var table string
-	table += t.config.Indention
+	table += b.config.Indention
 
 	// print headers
-	table += t.renderHeaders(maxWidths)
+	table += b.renderHeaders(maxWidths)
 
 	// print rows
-	table += fmt.Sprintf("\n%s", t.config.Indention)
-	table += t.renderRows(maxWidths)
+	table += fmt.Sprintf("\n%s", b.config.Indention)
+	table += b.renderRows(maxWidths)
 
 	// print footer
-	table += t.renderFooter(maxWidths)
+	table += b.renderFooter(maxWidths)
 	table += "\n"
 
 	return table

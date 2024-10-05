@@ -5,19 +5,19 @@ import (
 	"strings"
 )
 
-func (t *Builder[T]) getMaxWidths() []int {
+func (b *Builder[T]) getMaxWidths() []int {
 
 	// determine max width of each column
-	maxWidths := make([]int, len(t.headers))
+	maxWidths := make([]int, len(b.headers))
 
 	// header and footer
-	for i, header := range t.headers {
-		if t.config.HideHeaders {
+	for i, header := range b.headers {
+		if b.config.HideHeaders {
 			maxWidths[i] = 0
 		} else {
 			maxWidths[i] = len(header)
 		}
-		footer, ok := t.footer[header]
+		footer, ok := b.footer[header]
 		if !ok {
 			continue
 		}
@@ -27,7 +27,7 @@ func (t *Builder[T]) getMaxWidths() []int {
 	}
 
 	// cells
-	for _, row := range t.cells {
+	for _, row := range b.cells {
 		for colIndex, cell := range row {
 			if cell.Len() > maxWidths[colIndex] {
 				maxWidths[colIndex] = cell.Len()
@@ -38,43 +38,43 @@ func (t *Builder[T]) getMaxWidths() []int {
 	return maxWidths
 }
 
-func (t *Builder[T]) createCells() {
-	t.cells = make([][]Cell, len(t.rows))
-	for rowIndex := range t.rows {
-		t.cells[rowIndex] = make([]Cell, len(t.headers))
-		record := t.rows[rowIndex]
-		for colIndex, header := range t.headers {
-			cell := record.RenderCell(*t.renderContext, header)
-			t.cells[rowIndex][colIndex] = cell
+func (b *Builder[T]) createCells() {
+	b.cells = make([][]Cell, len(b.rows))
+	for rowIndex := range b.rows {
+		b.cells[rowIndex] = make([]Cell, len(b.headers))
+		record := b.rows[rowIndex]
+		for colIndex, header := range b.headers {
+			cell := record.RenderCell(*b.renderContext, header)
+			b.cells[rowIndex][colIndex] = cell
 		}
 	}
 }
 
-func (t *Builder[T]) renderHeaders(maxWidths []int) string {
+func (b *Builder[T]) renderHeaders(maxWidths []int) string {
 
 	// no headers
-	if t.config.HideHeaders {
+	if b.config.HideHeaders {
 		return ""
 	}
 
 	// render headers
 	out := ""
-	for i, header := range t.headers {
+	for i, header := range b.headers {
 		padLen := maxWidths[i]
 		exp := fmt.Sprintf("%-*s", padLen, header)
 		out += exp
-		if i < len(t.headers)-1 {
+		if i < len(b.headers)-1 {
 			out += "\t"
 		}
 	}
 
 	// render separator
-	out += fmt.Sprintf("\n%s", t.config.Indention)
-	for i := range t.headers {
+	out += fmt.Sprintf("\n%s", b.config.Indention)
+	for i := range b.headers {
 		padLen := maxWidths[i]
 		exp := strings.Repeat("-", padLen)
 		out += exp
-		if i < len(t.headers)-1 {
+		if i < len(b.headers)-1 {
 			out += "\t"
 		}
 	}
@@ -82,65 +82,65 @@ func (t *Builder[T]) renderHeaders(maxWidths []int) string {
 	return out
 }
 
-func (t *Builder[T]) renderRows(maxWidths []int) string {
+func (b *Builder[T]) renderRows(maxWidths []int) string {
 
 	out := ""
 
 	// iterate all cells
-	for rowIndex := range t.rows {
-		for colIndex := range t.headers {
+	for rowIndex := range b.rows {
+		for colIndex := range b.headers {
 
 			// render
 			padLen := maxWidths[colIndex]
-			cell := t.cells[rowIndex][colIndex].Render(padLen)
+			cell := b.cells[rowIndex][colIndex].Render(padLen)
 
 			// append
 			out += cell
-			if colIndex < len(t.headers)-1 {
+			if colIndex < len(b.headers)-1 {
 				out += "\t"
 			}
 		}
-		out += fmt.Sprintf("\n%s", t.config.Indention)
+		out += fmt.Sprintf("\n%s", b.config.Indention)
 	}
 
 	return out
 }
 
-func (t *Builder[T]) renderFooter(maxWidths []int) string {
+func (b *Builder[T]) renderFooter(maxWidths []int) string {
 
 	// no footer
-	if len(t.footer) == 0 {
+	if len(b.footer) == 0 {
 		return ""
 	}
 
 	out := ""
 
 	// render separator
-	for i := range t.headers {
+	for i := range b.headers {
 		padLen := maxWidths[i]
-		_, ok := t.footer[t.headers[i]]
+		_, ok := b.footer[b.headers[i]]
 		char := " "
 		if ok {
 			char = "-"
 		}
 		out += strings.Repeat(char, padLen)
-		if i < len(t.headers)-1 {
+		if i < len(b.headers)-1 {
 			out += "\t"
 		}
 	}
 
 	// render footer
-	out += fmt.Sprintf("\n%s", t.config.Indention)
-	for i := range t.headers {
+	out += fmt.Sprintf("\n%s", b.config.Indention)
+	for i := range b.headers {
 		padLen := maxWidths[i]
-		cell, ok := t.footer[t.headers[i]]
+		cell, ok := b.footer[b.headers[i]]
 		if !ok {
 			exp := strings.Repeat(" ", padLen)
 			out += exp
 		} else {
 			out += cell.Render(padLen)
 		}
-		if i < len(t.headers)-1 {
+		if i < len(b.headers)-1 {
 			out += "\t"
 		}
 	}
