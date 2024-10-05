@@ -75,21 +75,23 @@
 				
 				<option value="file9">github.com/rollicks-c/term/io/out.go (4.2%)</option>
 				
-				<option value="file10">github.com/rollicks-c/term/io/table/builder.go (0.0%)</option>
+				<option value="file10">github.com/rollicks-c/term/io/table/builder.go (50.0%)</option>
 				
-				<option value="file11">github.com/rollicks-c/term/io/table/cell.go (0.0%)</option>
+				<option value="file11">github.com/rollicks-c/term/io/table/cell.go (66.7%)</option>
 				
-				<option value="file12">github.com/rollicks-c/term/io/table/render.go (0.0%)</option>
+				<option value="file12">github.com/rollicks-c/term/io/table/object.go (93.8%)</option>
 				
-				<option value="file13">github.com/rollicks-c/term/io/table/row.go (0.0%)</option>
+				<option value="file13">github.com/rollicks-c/term/io/table/render.go (65.3%)</option>
 				
-				<option value="file14">github.com/rollicks-c/term/out.go (0.0%)</option>
+				<option value="file14">github.com/rollicks-c/term/io/table/row.go (37.5%)</option>
 				
-				<option value="file15">github.com/rollicks-c/term/prompt.go (0.0%)</option>
+				<option value="file15">github.com/rollicks-c/term/out.go (0.0%)</option>
 				
-				<option value="file16">github.com/rollicks-c/term/table.go (0.0%)</option>
+				<option value="file16">github.com/rollicks-c/term/prompt.go (0.0%)</option>
 				
-				<option value="file17">github.com/rollicks-c/term/table_ex.go (0.0%)</option>
+				<option value="file17">github.com/rollicks-c/term/table.go (0.0%)</option>
+				
+				<option value="file18">github.com/rollicks-c/term/table_ex.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -995,7 +997,7 @@ type Builder[T any] struct {
         config        *Config
 }
 
-func NewBuilder[T any](options ...Option) *Builder[T] <span class="cov0" title="0">{
+func NewBuilder[T any](options ...Option) *Builder[T] <span class="cov8" title="1">{
         t := &amp;Builder[T]{
                 headers: []string{},
                 rows:    []row[T]{},
@@ -1010,110 +1012,120 @@ func NewBuilder[T any](options ...Option) *Builder[T] <span class="cov0" title="
                         HideHeaders: false,
                 },
         }
-        <span class="cov0" title="0">for _, opt := range options </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">for _, opt := range options </span><span class="cov0" title="0">{
                 opt(t.config)
         }</span>
-        <span class="cov0" title="0">return t</span>
+        <span class="cov8" title="1">return t</span>
 }
 
-func (t *Builder[T]) AddHeaders(row ...string) *Builder[T] <span class="cov0" title="0">{
-        t.headers = append(t.headers, row...)
-        return t
+func (b *Builder[T]) AddHeaders(row ...string) *Builder[T] <span class="cov8" title="1">{
+        b.headers = append(b.headers, row...)
+        return b
 }</span>
 
-func (t *Builder[T]) AddCellFormatter(cf CellRenderer[T]) *Builder[T] <span class="cov0" title="0">{
-        t.renderContext.cellRenderer = cf
-        return t
+func (b *Builder[T]) AddCellFormatter(cf CellRenderer[T]) *Builder[T] <span class="cov8" title="1">{
+        b.renderContext.cellRenderer = cf
+        return b
 }</span>
 
-func (t *Builder[T]) AddRow(rows ...T) *Builder[T] <span class="cov0" title="0">{
-        for _, r := range rows </span><span class="cov0" title="0">{
-                t.rows = append(t.rows, dataRow[T]{
+func (b *Builder[T]) AddRow(rows ...T) *Builder[T] <span class="cov8" title="1">{
+        for _, r := range rows </span><span class="cov8" title="1">{
+                b.rows = append(b.rows, dataRow[T]{
                         record: r,
                 })
         }</span>
-        <span class="cov0" title="0">return t</span>
+        <span class="cov8" title="1">return b</span>
 }
 
-func (t *Builder[T]) AddSeparator(char string) *Builder[T] <span class="cov0" title="0">{
-        t.rows = append(t.rows, separatorRow[T]{
+func (b *Builder[T]) AddSeparator(char string) *Builder[T] <span class="cov0" title="0">{
+        b.rows = append(b.rows, separatorRow[T]{
                 char: char,
         })
-        return t
+        return b
 }</span>
 
-func (t *Builder[T]) AddCustomCell(header, value, style string) *Builder[T] <span class="cov0" title="0">{
+func (b *Builder[T]) AddCustomCell(header, value, style string) *Builder[T] <span class="cov0" title="0">{
         cr := customRow[T]{
                 data: make(map[string]dataCell),
         }
-        t.rows = append(t.rows, cr)
-        return t.AppendCustomCell(header, value, style)
+        b.rows = append(b.rows, cr)
+        return b.AppendCustomCell(header, value, style)
 }</span>
 
-func (t *Builder[T]) AppendCustomCell(header, value, style string) *Builder[T] <span class="cov0" title="0">{
-        cr := t.ensureCustomRow()
+func (b *Builder[T]) AppendCustomCell(header, value, style string) *Builder[T] <span class="cov0" title="0">{
+        cr := b.ensureCustomRow()
         cell := dataCell{
                 value: value,
                 style: style,
         }
         cr.data[header] = cell
-        t.rows[len(t.rows)-1] = cr
-        return t
+        b.rows[len(b.rows)-1] = cr
+        return b
 }</span>
 
-func (t *Builder[T]) ensureCustomRow() customRow[T] <span class="cov0" title="0">{
+func (b *Builder[T]) DefaultFormatter() *Builder[T] <span class="cov8" title="1">{
+
+        cf := func(record T, header string) (string, string) </span><span class="cov8" title="1">{
+                return "%s", fmt.Sprintf("%v", record)
+        }</span>
+        <span class="cov8" title="1">b.AddCellFormatter(cf)
+        return b</span>
+
+}
+
+func (b *Builder[T]) ensureCustomRow() customRow[T] <span class="cov0" title="0">{
 
         // table is empty
-        if len(t.rows) == 0 </span><span class="cov0" title="0">{
+        if len(b.rows) == 0 </span><span class="cov0" title="0">{
                 cr := customRow[T]{
                         data: make(map[string]dataCell),
                 }
-                t.rows = append(t.rows, cr)
+                b.rows = append(b.rows, cr)
                 return cr
         }</span>
 
         // last row is not custom row
-        <span class="cov0" title="0">cr, ok := t.rows[len(t.rows)-1].(customRow[T])
+        <span class="cov0" title="0">cr, ok := b.rows[len(b.rows)-1].(customRow[T])
         if !ok </span><span class="cov0" title="0">{
                 cr = customRow[T]{
                         data: make(map[string]dataCell),
                 }
-                t.rows = append(t.rows, cr)
+                b.rows = append(b.rows, cr)
         }</span>
 
         <span class="cov0" title="0">return cr</span>
 }
 
-func (t *Builder[T]) AddFooterCell(header, value, style string) *Builder[T] <span class="cov0" title="0">{
+func (b *Builder[T]) AddFooterCell(header, value, style string) *Builder[T] <span class="cov0" title="0">{
         cell := dataCell{
                 value: value,
                 style: style,
         }
-        t.footer[header] = cell
-        return t
+        b.footer[header] = cell
+        return b
 }</span>
 
-func (t *Builder[T]) Build() string <span class="cov0" title="0">{
+func (b *Builder[T]) Build() string <span class="cov8" title="1">{
 
         // create cells
-        t.createCells()
+        b.createCells()
 
         // determine max width of each column
-        maxWidths := t.getMaxWidths()
+        maxWidths := b.getMaxWidths()
 
         // render
         var table string
-        table += t.config.Indention
+        table += b.config.Indention
 
         // print headers
-        table += t.renderHeaders(maxWidths)
+        table += b.renderHeaders(maxWidths)
 
         // print rows
-        table += fmt.Sprintf("\n%s", t.config.Indention)
-        table += t.renderRows(maxWidths)
+        table += fmt.Sprintf("\n%s", b.config.Indention)
+        table += b.renderRows(maxWidths)
 
         // print footer
-        table += t.renderFooter(maxWidths)
+        table += b.renderFooter(maxWidths)
         table += "\n"
 
         return table
@@ -1140,12 +1152,12 @@ type separatorCell struct {
         char string
 }
 
-func (dc dataCell) Render(width int) string <span class="cov0" title="0">{
+func (dc dataCell) Render(width int) string <span class="cov8" title="1">{
         valuePadded := fmt.Sprintf("%-*s", width, dc.value)
         content := fmt.Sprintf(dc.style, valuePadded)
         return content
 }</span>
-func (dc dataCell) Len() int <span class="cov0" title="0">{
+func (dc dataCell) Len() int <span class="cov8" title="1">{
         return len(dc.value)
 }</span>
 
@@ -1161,24 +1173,73 @@ func (sc separatorCell) Len() int <span class="cov0" title="0">{
 		<pre class="file" id="file12" style="display: none">package table
 
 import (
+        "encoding/json"
+        "fmt"
+)
+
+type FlatObject = map[string]any
+
+func FromObject(obj any, options ...Option) *Builder[FlatObject] <span class="cov8" title="1">{
+
+        // convert to map
+        raw, err := json.Marshal(obj)
+        if err != nil </span><span class="cov0" title="0">{
+                return createErrorTable(err)
+        }</span>
+        <span class="cov8" title="1">data := map[string]interface{}{}
+        if err := json.Unmarshal(raw, &amp;data); err != nil </span><span class="cov8" title="1">{
+                return createErrorTable(err)
+        }</span>
+
+        // extract data
+        <span class="cov8" title="1">fields := make([]string, 0, len(data))
+        for k := range data </span><span class="cov8" title="1">{
+                fields = append(fields, k)
+        }</span>
+        <span class="cov8" title="1">cf := func(record FlatObject, header string) (string, string) </span><span class="cov8" title="1">{
+                return "%s", fmt.Sprintf("%v", record[header])
+        }</span>
+
+        // build table
+        <span class="cov8" title="1">builder := NewBuilder[FlatObject](options...).
+                AddHeaders(fields...).
+                AddRow(data).
+                AddCellFormatter(cf)
+        return builder</span>
+}
+
+func createErrorTable(err error) *Builder[FlatObject] <span class="cov8" title="1">{
+        cf := func(record FlatObject, header string) (string, string) </span><span class="cov8" title="1">{
+                return "%s", fmt.Sprintf("%v", record[header])
+        }</span>
+        <span class="cov8" title="1">return NewBuilder[FlatObject]().
+                AddHeaders("error").
+                AddRow(map[string]any{"error": err}).
+                AddCellFormatter(cf)</span>
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package table
+
+import (
         "fmt"
         "strings"
 )
 
-func (t *Builder[T]) getMaxWidths() []int <span class="cov0" title="0">{
+func (b *Builder[T]) getMaxWidths() []int <span class="cov8" title="1">{
 
         // determine max width of each column
-        maxWidths := make([]int, len(t.headers))
+        maxWidths := make([]int, len(b.headers))
 
         // header and footer
-        for i, header := range t.headers </span><span class="cov0" title="0">{
-                if t.config.HideHeaders </span><span class="cov0" title="0">{
+        for i, header := range b.headers </span><span class="cov8" title="1">{
+                if b.config.HideHeaders </span><span class="cov0" title="0">{
                         maxWidths[i] = 0
-                }</span> else<span class="cov0" title="0"> {
+                }</span> else<span class="cov8" title="1"> {
                         maxWidths[i] = len(header)
                 }</span>
-                <span class="cov0" title="0">footer, ok := t.footer[header]
-                if !ok </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">footer, ok := b.footer[header]
+                if !ok </span><span class="cov8" title="1">{
                         continue</span>
                 }
                 <span class="cov0" title="0">if footer.Len() &gt; maxWidths[i] </span><span class="cov0" title="0">{
@@ -1187,120 +1248,120 @@ func (t *Builder[T]) getMaxWidths() []int <span class="cov0" title="0">{
         }
 
         // cells
-        <span class="cov0" title="0">for _, row := range t.cells </span><span class="cov0" title="0">{
-                for colIndex, cell := range row </span><span class="cov0" title="0">{
-                        if cell.Len() &gt; maxWidths[colIndex] </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">for _, row := range b.cells </span><span class="cov8" title="1">{
+                for colIndex, cell := range row </span><span class="cov8" title="1">{
+                        if cell.Len() &gt; maxWidths[colIndex] </span><span class="cov8" title="1">{
                                 maxWidths[colIndex] = cell.Len()
                         }</span>
                 }
         }
 
-        <span class="cov0" title="0">return maxWidths</span>
+        <span class="cov8" title="1">return maxWidths</span>
 }
 
-func (t *Builder[T]) createCells() <span class="cov0" title="0">{
-        t.cells = make([][]Cell, len(t.rows))
-        for rowIndex := range t.rows </span><span class="cov0" title="0">{
-                t.cells[rowIndex] = make([]Cell, len(t.headers))
-                record := t.rows[rowIndex]
-                for colIndex, header := range t.headers </span><span class="cov0" title="0">{
-                        cell := record.RenderCell(*t.renderContext, header)
-                        t.cells[rowIndex][colIndex] = cell
+func (b *Builder[T]) createCells() <span class="cov8" title="1">{
+        b.cells = make([][]Cell, len(b.rows))
+        for rowIndex := range b.rows </span><span class="cov8" title="1">{
+                b.cells[rowIndex] = make([]Cell, len(b.headers))
+                record := b.rows[rowIndex]
+                for colIndex, header := range b.headers </span><span class="cov8" title="1">{
+                        cell := record.RenderCell(*b.renderContext, header)
+                        b.cells[rowIndex][colIndex] = cell
                 }</span>
         }
 }
 
-func (t *Builder[T]) renderHeaders(maxWidths []int) string <span class="cov0" title="0">{
+func (b *Builder[T]) renderHeaders(maxWidths []int) string <span class="cov8" title="1">{
 
         // no headers
-        if t.config.HideHeaders </span><span class="cov0" title="0">{
+        if b.config.HideHeaders </span><span class="cov0" title="0">{
                 return ""
         }</span>
 
         // render headers
-        <span class="cov0" title="0">out := ""
-        for i, header := range t.headers </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">out := ""
+        for i, header := range b.headers </span><span class="cov8" title="1">{
                 padLen := maxWidths[i]
                 exp := fmt.Sprintf("%-*s", padLen, header)
                 out += exp
-                if i &lt; len(t.headers)-1 </span><span class="cov0" title="0">{
+                if i &lt; len(b.headers)-1 </span><span class="cov8" title="1">{
                         out += "\t"
                 }</span>
         }
 
         // render separator
-        <span class="cov0" title="0">out += fmt.Sprintf("\n%s", t.config.Indention)
-        for i := range t.headers </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">out += fmt.Sprintf("\n%s", b.config.Indention)
+        for i := range b.headers </span><span class="cov8" title="1">{
                 padLen := maxWidths[i]
                 exp := strings.Repeat("-", padLen)
                 out += exp
-                if i &lt; len(t.headers)-1 </span><span class="cov0" title="0">{
+                if i &lt; len(b.headers)-1 </span><span class="cov8" title="1">{
                         out += "\t"
                 }</span>
         }
 
-        <span class="cov0" title="0">return out</span>
+        <span class="cov8" title="1">return out</span>
 }
 
-func (t *Builder[T]) renderRows(maxWidths []int) string <span class="cov0" title="0">{
+func (b *Builder[T]) renderRows(maxWidths []int) string <span class="cov8" title="1">{
 
         out := ""
 
         // iterate all cells
-        for rowIndex := range t.rows </span><span class="cov0" title="0">{
-                for colIndex := range t.headers </span><span class="cov0" title="0">{
+        for rowIndex := range b.rows </span><span class="cov8" title="1">{
+                for colIndex := range b.headers </span><span class="cov8" title="1">{
 
                         // render
                         padLen := maxWidths[colIndex]
-                        cell := t.cells[rowIndex][colIndex].Render(padLen)
+                        cell := b.cells[rowIndex][colIndex].Render(padLen)
 
                         // append
                         out += cell
-                        if colIndex &lt; len(t.headers)-1 </span><span class="cov0" title="0">{
+                        if colIndex &lt; len(b.headers)-1 </span><span class="cov8" title="1">{
                                 out += "\t"
                         }</span>
                 }
-                <span class="cov0" title="0">out += fmt.Sprintf("\n%s", t.config.Indention)</span>
+                <span class="cov8" title="1">out += fmt.Sprintf("\n%s", b.config.Indention)</span>
         }
 
-        <span class="cov0" title="0">return out</span>
+        <span class="cov8" title="1">return out</span>
 }
 
-func (t *Builder[T]) renderFooter(maxWidths []int) string <span class="cov0" title="0">{
+func (b *Builder[T]) renderFooter(maxWidths []int) string <span class="cov8" title="1">{
 
         // no footer
-        if len(t.footer) == 0 </span><span class="cov0" title="0">{
+        if len(b.footer) == 0 </span><span class="cov8" title="1">{
                 return ""
         }</span>
 
         <span class="cov0" title="0">out := ""
 
         // render separator
-        for i := range t.headers </span><span class="cov0" title="0">{
+        for i := range b.headers </span><span class="cov0" title="0">{
                 padLen := maxWidths[i]
-                _, ok := t.footer[t.headers[i]]
+                _, ok := b.footer[b.headers[i]]
                 char := " "
                 if ok </span><span class="cov0" title="0">{
                         char = "-"
                 }</span>
                 <span class="cov0" title="0">out += strings.Repeat(char, padLen)
-                if i &lt; len(t.headers)-1 </span><span class="cov0" title="0">{
+                if i &lt; len(b.headers)-1 </span><span class="cov0" title="0">{
                         out += "\t"
                 }</span>
         }
 
         // render footer
-        <span class="cov0" title="0">out += fmt.Sprintf("\n%s", t.config.Indention)
-        for i := range t.headers </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">out += fmt.Sprintf("\n%s", b.config.Indention)
+        for i := range b.headers </span><span class="cov0" title="0">{
                 padLen := maxWidths[i]
-                cell, ok := t.footer[t.headers[i]]
+                cell, ok := b.footer[b.headers[i]]
                 if !ok </span><span class="cov0" title="0">{
                         exp := strings.Repeat(" ", padLen)
                         out += exp
                 }</span> else<span class="cov0" title="0"> {
                         out += cell.Render(padLen)
                 }</span>
-                <span class="cov0" title="0">if i &lt; len(t.headers)-1 </span><span class="cov0" title="0">{
+                <span class="cov0" title="0">if i &lt; len(b.headers)-1 </span><span class="cov0" title="0">{
                         out += "\t"
                 }</span>
         }
@@ -1309,7 +1370,7 @@ func (t *Builder[T]) renderFooter(maxWidths []int) string <span class="cov0" tit
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package table
+		<pre class="file" id="file14" style="display: none">package table
 
 import "strings"
 
@@ -1325,7 +1386,7 @@ type dataRow[T any] struct {
         record T
 }
 
-func (d dataRow[T]) RenderCell(ctx renderContext[T], header string) Cell <span class="cov0" title="0">{
+func (d dataRow[T]) RenderCell(ctx renderContext[T], header string) Cell <span class="cov8" title="1">{
 
         // apply formatters
         style, valueRaw := ctx.cellRenderer(d.record, header)
@@ -1366,7 +1427,7 @@ func (c customRow[T]) RenderCell(ctx renderContext[T], header string) Cell <span
 }
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package term
+		<pre class="file" id="file15" style="display: none">package term
 
 import "fmt"
 
@@ -1484,7 +1545,7 @@ func StatusColor(status string) func(...interface{}) string <span class="cov0" t
 }
 </pre>
 		
-		<pre class="file" id="file15" style="display: none">package term
+		<pre class="file" id="file16" style="display: none">package term
 
 import (
         "fmt"
@@ -1597,7 +1658,7 @@ func PromptFloat(prompt string, defaultValue float64) (float64, error) <span cla
 }
 </pre>
 		
-		<pre class="file" id="file16" style="display: none">package term
+		<pre class="file" id="file17" style="display: none">package term
 
 import (
         "fmt"
@@ -1723,7 +1784,7 @@ func (t *TableViewBuilder) renderCell(rowIndex, colIndex int, widths []int) stri
 }
 </pre>
 		
-		<pre class="file" id="file17" style="display: none">package term
+		<pre class="file" id="file18" style="display: none">package term
 
 import (
         "github.com/rollicks-c/term/io/table"
@@ -1743,6 +1804,10 @@ func WithIndention(chars string) table.Option <span class="cov0" title="0">{
 
 func TableEx[T any](options ...table.Option) *table.Builder[T] <span class="cov0" title="0">{
         return table.NewBuilder[T](options...)
+}</span>
+
+func ObjectToTable(obj any, options ...table.Option) *table.Builder[table.FlatObject] <span class="cov0" title="0">{
+        return table.FromObject(obj, options...)
 }</span>
 </pre>
 		
