@@ -77,3 +77,31 @@ func (m Module) Choose(prompt string, list map[string]any) (any, error) {
 	}
 	return selectedTask, nil
 }
+
+func (m Module) PromptString(text string) (string, error) {
+	prompt := promptui.Prompt{
+		Label: text,
+	}
+	response, err := prompt.Run()
+	if err != nil {
+		return "", err
+	}
+
+	response = strings.TrimSpace(response)
+	return response, nil
+}
+
+func (m Module) PromptPassword(text string) (string, error) {
+	prompt := promptui.Prompt{
+		Label: text,
+		Mask:  '*',
+	}
+	response, err := prompt.Run()
+	if err != nil {
+		return "", err
+	}
+
+	response = strings.TrimSpace(response)
+	return response, nil
+
+}
