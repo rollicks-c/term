@@ -805,6 +805,34 @@ func (m Module) Choose(prompt string, list map[string]any) (any, error) <span cl
         }</span>
         <span class="cov0" title="0">return selectedTask, nil</span>
 }
+
+func (m Module) PromptString(text string) (string, error) <span class="cov0" title="0">{
+        prompt := promptui.Prompt{
+                Label: text,
+        }
+        response, err := prompt.Run()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">response = strings.TrimSpace(response)
+        return response, nil</span>
+}
+
+func (m Module) PromptPassword(text string) (string, error) <span class="cov0" title="0">{
+        prompt := promptui.Prompt{
+                Label: text,
+                Mask:  '*',
+        }
+        response, err := prompt.Run()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">response = strings.TrimSpace(response)
+        return response, nil</span>
+
+}
 </pre>
 		
 		<pre class="file" id="file8" style="display: none">package io
