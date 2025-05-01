@@ -3,6 +3,7 @@ package table
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 )
 
 type FlatObject = map[string]any
@@ -27,6 +28,9 @@ func FromObject(obj any, options ...Option) *Builder[FlatObject] {
 	cf := func(record FlatObject, header string) (string, string) {
 		return "%s", fmt.Sprintf("%v", record[header])
 	}
+	sort.Slice(fields, func(i, j int) bool {
+		return fields[i] < fields[j]
+	})
 
 	// build table
 	builder := NewBuilder[FlatObject](options...).
