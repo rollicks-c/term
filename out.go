@@ -52,6 +52,9 @@ func Printf(col ColPrint, format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
 	fmt.Print(col(msg))
 }
+func Print(col ColPrint, test string) {
+	fmt.Print(col(test))
+}
 
 func Sprintf(col ColPrint, format string, v ...interface{}) string {
 	msg := fmt.Sprintf(format, v...)
