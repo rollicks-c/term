@@ -8,6 +8,14 @@ import (
 	"strings"
 )
 
+type PromptOption func(*promptui.Prompt)
+
+func WithDefault(defaultValue string) PromptOption {
+	return func(p *promptui.Prompt) {
+		p.Default = defaultValue
+	}
+}
+
 func (m Module) Confirm(prompt string, v ...interface{}) bool {
 
 	msg := fmt.Sprintf("%s (y/n): ", prompt)
@@ -78,9 +86,12 @@ func (m Module) Choose(prompt string, list map[string]any) (any, error) {
 	return selectedTask, nil
 }
 
-func (m Module) PromptString(text string) (string, error) {
+func (m Module) PromptString(text string, options ...PromptOption) (string, error) {
 	prompt := promptui.Prompt{
 		Label: text,
+	}
+	for _, opt := range options {
+		opt(&prompt)
 	}
 	response, err := prompt.Run()
 	if err != nil {
@@ -89,6 +100,25 @@ func (m Module) PromptString(text string) (string, error) {
 
 	response = strings.TrimSpace(response)
 	return response, nil
+}
+
+func (m Module) PromptInt(text string, options ...PromptOption) (int, error) {
+	prompt := promptui.Prompt{
+		Label: text,
+	}
+	for _, opt := range options {
+		opt(&prompt)
+	}
+	response, err := prompt.Run()
+	if err != nil {
+		return 0, err
+	}
+
+	value, err := strconv.Atoi(response)
+	if err != nil {
+		return 0, err
+	}
+	return value, nil
 }
 
 func (m Module) PromptPassword(text string) (string, error) {
