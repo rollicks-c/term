@@ -1563,6 +1563,10 @@ func Warnf(format string, v ...interface{}) <span class="cov0" title="0">{
         fmt.Print(Warn(msg))
 }</span>
 
+func Fail(msg string) <span class="cov0" title="0">{
+        fmt.Print(Fatal(msg))
+}</span>
+
 func Failf(format string, v ...interface{}) <span class="cov0" title="0">{
         msg := fmt.Sprintf(format, v...)
         fmt.Print(Fatal(msg))
