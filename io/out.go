@@ -74,6 +74,12 @@ func (m Module) WarnF(format string, v ...interface{}) {
 	}
 }
 
+func (m Module) Fail(msg string) {
+	if _, err := fmt.Fprint(m.out, Fatal(msg)); err != nil {
+		fmt.Print(err)
+	}
+}
+
 func (m Module) FailF(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
 	if _, err := fmt.Fprint(m.out, Fatal(msg)); err != nil {
