@@ -73,7 +73,7 @@
 				
 				<option value="file8">github.com/rollicks-c/term/io/io.go (0.0%)</option>
 				
-				<option value="file9">github.com/rollicks-c/term/io/out.go (4.2%)</option>
+				<option value="file9">github.com/rollicks-c/term/io/out.go (4.0%)</option>
 				
 				<option value="file10">github.com/rollicks-c/term/io/table/builder.go (50.0%)</option>
 				
@@ -962,6 +962,12 @@ func (m Module) SPrintF(col ColPrint, format string, v ...interface{}) string <s
 func (m Module) WarnF(format string, v ...interface{}) <span class="cov0" title="0">{
         msg := fmt.Sprintf(format, v...)
         if _, err := fmt.Fprint(m.out, Warn(msg)); err != nil </span><span class="cov0" title="0">{
+                fmt.Print(err)
+        }</span>
+}
+
+func (m Module) Fail(msg string) <span class="cov0" title="0">{
+        if _, err := fmt.Fprint(m.out, Fatal(msg)); err != nil </span><span class="cov0" title="0">{
                 fmt.Print(err)
         }</span>
 }
