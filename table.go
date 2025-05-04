@@ -6,11 +6,13 @@ import (
 )
 
 type CellFormatter func(value string, rowIndex, colIndex int) (string, string)
+type RowFormatter func(row map[string]string, rowIndex int) string
 
 type ColFormatter func(value string, rowIndex int) (string, string)
 
 type TableViewBuilder struct {
 	cellFormatter CellFormatter
+	rowFormatter  RowFormatter
 	colFormatters map[string]ColFormatter
 	headers       []string
 	rows          [][]string
@@ -21,7 +23,10 @@ func TableView() *TableViewBuilder {
 		headers: []string{},
 		rows:    [][]string{},
 		cellFormatter: func(value string, rowIndex, colIndex int) (string, string) {
-			return "%s", value
+			return "", value
+		},
+		rowFormatter: func(row map[string]string, rowIndex int) string {
+			return "%s"
 		},
 		colFormatters: map[string]ColFormatter{},
 	}
@@ -39,6 +44,11 @@ func (t *TableViewBuilder) AddCellFormatter(cf CellFormatter) *TableViewBuilder 
 
 func (t *TableViewBuilder) AddColFormatter(col string, cf ColFormatter) *TableViewBuilder {
 	t.colFormatters[col] = cf
+	return t
+}
+
+func (t *TableViewBuilder) AddRowFormatter(rf RowFormatter) *TableViewBuilder {
+	t.rowFormatter = rf
 	return t
 }
 
@@ -108,10 +118,14 @@ func (t *TableViewBuilder) renderCell(rowIndex, colIndex int, widths []int) stri
 	cell := t.rows[rowIndex][colIndex]
 
 	// apply formatters
-	style, value := t.cellFormatter(cell, rowIndex, colIndex)
+	rowStyle := t.rowFormatter(t.getRow(rowIndex), rowIndex)
+	colStyle, colValue := "", ""
 	if colFormatter, ok := t.colFormatters[t.headers[colIndex]]; ok {
-		style, value = colFormatter(cell, rowIndex)
+		colStyle, colValue = colFormatter(cell, rowIndex)
 	}
+	cellStyle, cellValue := t.cellFormatter(cell, rowIndex, colIndex)
+	style := firstNonEmpty(cellStyle, colStyle, rowStyle, "%s")
+	value := firstNonEmpty(cellValue, colValue)
 
 	// escape
 	value = strings.ReplaceAll(value, "\n", "\\n")
@@ -121,4 +135,21 @@ func (t *TableViewBuilder) renderCell(rowIndex, colIndex int, widths []int) stri
 	exp = fmt.Sprintf(style, exp)
 
 	return exp
+}
+
+func (t *TableViewBuilder) getRow(rowIndex int) map[string]string {
+	row := make(map[string]string)
+	for colIndex, header := range t.headers {
+		row[header] = t.rows[rowIndex][colIndex]
+	}
+	return row
+}
+
+func firstNonEmpty(s ...string) string {
+	for _, s := range s {
+		if s != "" {
+			return s
+		}
+	}
+	return ""
 }
